@@ -43,6 +43,9 @@ jobs:
     name: unit-tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
@@ -50,4 +53,32 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v6
-      - run: ./gradlew testDebugUnitTest
+      - run: ./gradlew testDebugUnitTest koverXmlReportDebug koverHtmlReportDebug
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: app/build/reports/kover/htmlDebug
+      - id: coverage
+        if: github.event_name == 'pull_request'
+        uses: madrapps/jacoco-report@v1.8.0
+        with:
+          paths: ${{ github.workspace }}/app/build/reports/kover/reportDebug.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Code coverage
+          coverage-counter-type: LINE
+          min-coverage-overall: 80
+          min-coverage-changed-lines: 80
+          update-comment: true
+      - name: Require 80% coverage on changed lines
+        if: github.event_name == 'pull_request'
+        env:
+          CHANGED_LINES: ${{ steps.coverage.outputs.coverage-changed-lines }}
+        run: |
+          if [ -z "$CHANGED_LINES" ] || [ "$CHANGED_LINES" = "NaN" ]; then
+            echo "No measured lines changed."
+            exit 0
+          fi
+          if awk -v c="$CHANGED_LINES" 'BEGIN { exit !(c < 80) }'; then
+            echo "::error::Coverage of changed lines is ${CHANGED_LINES}%, below 80%."
+            exit 1
+          fi

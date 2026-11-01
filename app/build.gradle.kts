@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.kover)
 }
 
 val newsApiKey: String = providers.environmentVariable("NEWS_API_KEY")
@@ -65,6 +66,32 @@ ktlint {
 detekt {
     buildUponDefaultConfig = true
     config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                packages(
+                    "com.dejevij.newsapp.di",
+                    "com.dejevij.newsapp.ui",
+                    "dagger.hilt.internal.aggregatedroot.codegen",
+                    "hilt_aggregated_deps"
+                )
+                classes(
+                    "com.dejevij.newsapp.BuildConfig",
+                    "com.dejevij.newsapp.MainActivity*",
+                    "com.dejevij.newsapp.NewsApplication*",
+                    "*Hilt_*",
+                    "*_Factory",
+                    "*_GeneratedInjector",
+                    "*_HiltModules*",
+                    "*_MembersInjector",
+                    "*ComposableSingletons*"
+                )
+            }
+        }
+    }
 }
 
 dependencies {
