@@ -1,16 +1,13 @@
 package com.dejevij.newsapp.core.designsystem.component
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import com.dejevij.newsapp.core.designsystem.preview.PreviewContainer
 
 @Composable
 fun PrimaryButton(
@@ -38,18 +35,20 @@ fun SecondaryButton(
 
 @PreviewLightDark
 @Composable
-private fun ButtonPreview() {
-    NewsAppTheme {
-        Surface {
-            Column(
-                modifier = Modifier.padding(NewsAppTheme.spacing.default),
-                verticalArrangement = Arrangement.spacedBy(NewsAppTheme.spacing.small)
-            ) {
-                PrimaryButton(text = "Read full article", onClick = {})
-                SecondaryButton(text = "Retry", onClick = {})
-                PrimaryButton(text = "Disabled", onClick = {}, enabled = false)
-                SecondaryButton(text = "Disabled", onClick = {}, enabled = false)
-            }
-        }
+private fun PrimaryButtonPreview(
+    @PreviewParameter(ButtonPreviewParameterProvider::class) state: ButtonPreviewState
+) {
+    PreviewContainer(state) {
+        PrimaryButton(text = it.text, onClick = {}, enabled = it.enabled)
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun SecondaryButtonPreview(
+    @PreviewParameter(ButtonPreviewParameterProvider::class) state: ButtonPreviewState
+) {
+    PreviewContainer(state) {
+        SecondaryButton(text = it.text, onClick = {}, enabled = it.enabled)
     }
 }

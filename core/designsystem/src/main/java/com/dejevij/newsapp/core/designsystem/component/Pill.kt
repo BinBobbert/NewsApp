@@ -1,7 +1,5 @@
 package com.dejevij.newsapp.core.designsystem.component
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FilterChip
@@ -9,10 +7,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import com.dejevij.newsapp.core.designsystem.preview.PreviewContainer
 import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
 
 @Composable
@@ -56,18 +55,21 @@ fun SelectablePill(
 
 @PreviewLightDark
 @Composable
-private fun PillPreview() {
-    NewsAppTheme {
-        Surface {
-            Row(
-                modifier = Modifier.padding(NewsAppTheme.spacing.default),
-                horizontalArrangement = Arrangement.spacedBy(NewsAppTheme.spacing.small),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Pill(text = "BBC News")
-                SelectablePill(text = "Selected", selected = true, onClick = {})
-                SelectablePill(text = "Unselected", selected = false, onClick = {})
-            }
-        }
+private fun PillPreview(
+    @PreviewParameter(PillPreviewParameterProvider::class) state: PillPreviewState
+) {
+    PreviewContainer(state) {
+        Pill(text = it.text)
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun SelectablePillPreview(
+    @PreviewParameter(SelectablePillPreviewParameterProvider::class) state:
+    SelectablePillPreviewState
+) {
+    PreviewContainer(state) {
+        SelectablePill(text = it.text, selected = it.selected, onClick = {}, enabled = it.enabled)
     }
 }

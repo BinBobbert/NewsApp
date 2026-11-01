@@ -1,0 +1,23 @@
+package com.dejevij.newsapp.core.designsystem.preview
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
+
+@Composable
+fun <T> PreviewContainer(
+    parameter: T,
+    modifier: Modifier = Modifier,
+    content: @Composable (T) -> Unit
+) {
+    NewsAppTheme {
+        Surface(modifier = modifier) {
+            Box(modifier = Modifier.padding(NewsAppTheme.spacing.default)) {
+                content(parameter)
+            }
+        }
+    }
+}
