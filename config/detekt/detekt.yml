@@ -13,4 +13,4 @@ style:
   MagicNumber:
     excludes: ['**/test/**', '**/androidTest/**', '**/designsystem/theme/Color.kt']
   UnusedPrivateMember:
-    ignoreAnnotated: ['Preview']
+    ignoreAnnotated: ['Preview', 'PreviewLightDark']

@@ -30,9 +30,13 @@ class CodeQualityConventionPlugin : Plugin<Project> {
             reports {
                 filters {
                     excludes {
+                        annotatedBy("androidx.compose.ui.tooling.preview.Preview*")
                         packages("dagger.hilt.internal.aggregatedroot.codegen", "hilt_aggregated_deps")
                         classes(
                             "*.BuildConfig",
+                            "*.preview.*",
+                            "*PreviewParameterProvider",
+                            "*PreviewState",
                             "*Hilt_*",
                             "*_Factory*",
                             "*_GeneratedInjector",
