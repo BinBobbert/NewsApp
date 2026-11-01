@@ -11,6 +11,7 @@ fun NewsAppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composabl
     CompositionLocalProvider(LocalSpacing provides Spacing()) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+            typography = NewsAppTypography,
             content = content
         )
     }
