@@ -17,6 +17,10 @@ gradlePlugin {
             id = libs.plugins.newsapp.android.application.get().pluginId
             implementationClass = "AndroidApplicationConventionPlugin"
         }
+        register("androidLibrary") {
+            id = libs.plugins.newsapp.android.library.get().pluginId
+            implementationClass = "AndroidLibraryConventionPlugin"
+        }
         register("androidCompose") {
             id = libs.plugins.newsapp.android.compose.get().pluginId
             implementationClass = "AndroidComposeConventionPlugin"
