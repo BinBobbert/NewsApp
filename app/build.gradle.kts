@@ -47,7 +47,7 @@ kover {
     reports {
         filters {
             excludes {
-                packages("com.dejevij.newsapp.di", "com.dejevij.newsapp.ui")
+                packages("com.dejevij.newsapp.di")
                 classes("com.dejevij.newsapp.MainActivity*", "com.dejevij.newsapp.NewsApplication*")
             }
         }
@@ -71,8 +71,9 @@ dependencies {
 
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
-    testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.okhttp.mockwebserver)
 
