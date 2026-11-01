@@ -13,7 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -29,7 +29,7 @@ import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
 fun ArticleCard(article: ArticleViewData, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
     ) {
         if (article.imageUrl != null) {
             ArticleImage(imageUrl = article.imageUrl)
@@ -41,7 +41,7 @@ fun ArticleCard(article: ArticleViewData, onClick: () -> Unit, modifier: Modifie
                 text = article.title,
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 3,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             if (article.description != null) {
                 Spacer(modifier = Modifier.height(NewsAppTheme.spacing.small))
@@ -50,14 +50,14 @@ fun ArticleCard(article: ArticleViewData, onClick: () -> Unit, modifier: Modifie
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             Spacer(modifier = Modifier.height(NewsAppTheme.spacing.small))
             Text(
                 text = article.publishedAt,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -65,7 +65,7 @@ fun ArticleCard(article: ArticleViewData, onClick: () -> Unit, modifier: Modifie
 
 @Composable
 private fun ArticleImage(imageUrl: String, modifier: Modifier = Modifier) {
-    var isError by remember(imageUrl) { mutableStateOf(false) }
+    var isError by rememberSaveable(imageUrl) { mutableStateOf(false) }
     if (isError) return
 
     AsyncImage(
@@ -76,14 +76,14 @@ private fun ArticleImage(imageUrl: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(IMAGE_ASPECT_RATIO)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(MaterialTheme.colorScheme.surfaceVariant),
     )
 }
 
 @PreviewLightDark
 @Composable
 private fun ArticleCardPreview(
-    @PreviewParameter(ArticleCardPreviewParameterProvider::class) article: ArticleViewData
+    @PreviewParameter(ArticleCardPreviewParameterProvider::class) article: ArticleViewData,
 ) {
     PreviewContainer(article) {
         ArticleCard(article = it, onClick = {})

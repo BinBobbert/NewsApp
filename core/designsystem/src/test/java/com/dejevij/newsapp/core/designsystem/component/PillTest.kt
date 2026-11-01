@@ -42,7 +42,7 @@ class PillTest {
                 SelectablePill(
                     text = "Sports",
                     selected = selected,
-                    onClick = { selected = !selected }
+                    onClick = { selected = !selected },
                 )
             }
         }
@@ -62,7 +62,7 @@ class PillTest {
                     text = "Sports",
                     selected = false,
                     onClick = { clicks++ },
-                    enabled = false
+                    enabled = false,
                 )
             }
         }

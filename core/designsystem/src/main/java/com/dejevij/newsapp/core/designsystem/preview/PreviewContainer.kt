@@ -12,12 +12,12 @@ import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
 fun <T> PreviewContainer(
     parameter: T,
     modifier: Modifier = Modifier,
-    contentPadding: Dp = NewsAppTheme.spacing.default,
-    content: @Composable (T) -> Unit
+    contentPadding: Dp? = null,
+    content: @Composable (T) -> Unit,
 ) {
     NewsAppTheme {
         Surface(modifier = modifier) {
-            Box(modifier = Modifier.padding(contentPadding)) {
+            Box(modifier = Modifier.padding(contentPadding ?: NewsAppTheme.spacing.default)) {
                 content(parameter)
             }
         }

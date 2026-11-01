@@ -41,7 +41,7 @@ internal val LightColorScheme = lightColorScheme(
     surfaceContainerLow = Color(0xFFF3F3FA),
     surfaceContainer = Color(0xFFEDEDF4),
     surfaceContainerHigh = Color(0xFFE7E8EE),
-    surfaceContainerHighest = Color(0xFFE2E2E9)
+    surfaceContainerHighest = Color(0xFFE2E2E9),
 )
 
 internal val DarkColorScheme = darkColorScheme(
@@ -80,5 +80,5 @@ internal val DarkColorScheme = darkColorScheme(
     surfaceContainerLow = Color(0xFF191C20),
     surfaceContainer = Color(0xFF1D2024),
     surfaceContainerHigh = Color(0xFF282A2F),
-    surfaceContainerHighest = Color(0xFF33353A)
+    surfaceContainerHighest = Color(0xFF33353A),
 )

@@ -11,8 +11,10 @@ value class Country private constructor(val code: String) {
             "ae", "ar", "at", "au", "be", "bg", "br", "ca", "ch", "cn", "co", "cu", "cz", "de",
             "eg", "fr", "gb", "gr", "hk", "hu", "id", "ie", "il", "in", "it", "jp", "kr", "lt",
             "lv", "ma", "mx", "my", "ng", "nl", "no", "nz", "ph", "pl", "pt", "ro", "rs", "ru",
-            "sa", "se", "sg", "si", "sk", "th", "tr", "tw", "ua", "us", "ve", "za"
+            "sa", "se", "sg", "si", "sk", "th", "tr", "tw", "ua", "us", "ve", "za",
         )
+
+        val all: List<Country> = supportedCodes.map(::Country)
 
         fun fromCode(code: String): Country? =
             code.lowercase().takeIf { it in supportedCodes }?.let(::Country)

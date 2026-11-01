@@ -12,7 +12,7 @@ fun NewsAppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composabl
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
             typography = NewsAppTypography,
-            content = content
+            content = content,
         )
     }
 }
