@@ -35,7 +35,7 @@ object NetworkModule {
 
     @Provides
     @BaseUrl
-    fun provideBaseUrl(): String = "https://newsapi.org/"
+    fun provideBaseUrl(): String = BuildConfig.NEWS_API_BASE_URL
 
     @Provides
     @Singleton

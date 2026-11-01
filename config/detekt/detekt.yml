@@ -5,6 +5,7 @@ naming:
 complexity:
   LongParameterList:
     ignoreAnnotated: ['Composable']
+    ignoreDefaultParameters: true
 
 style:
   FunctionOnlyReturningConstant:
