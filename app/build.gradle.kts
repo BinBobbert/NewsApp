@@ -84,7 +84,7 @@ kover {
                     "com.dejevij.newsapp.MainActivity*",
                     "com.dejevij.newsapp.NewsApplication*",
                     "*Hilt_*",
-                    "*_Factory",
+                    "*_Factory*",
                     "*_GeneratedInjector",
                     "*_HiltModules*",
                     "*_MembersInjector",

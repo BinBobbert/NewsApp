@@ -8,6 +8,7 @@ import com.dejevij.newsapp.model.Country
 import java.io.IOException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.SerializationException
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -60,6 +61,15 @@ class DefaultArticleRepositoryTest {
 
         assertEquals(RefreshResult.Failure(DataError.NoConnection), result)
         assertEquals(listOf("a"), repository.topHeadlines.first().map { it.url })
+    }
+
+    @Test
+    fun `maps a malformed response to an unknown error`() = runTest {
+        newsApi.response = { throw SerializationException("Malformed JSON") }
+
+        val result = repository.refreshTopHeadlines(Country.Default)
+
+        assertEquals(RefreshResult.Failure(DataError.Unknown), result)
     }
 
     @Test
