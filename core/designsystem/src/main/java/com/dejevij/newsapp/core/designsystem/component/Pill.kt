@@ -20,17 +20,17 @@ fun Pill(text: String, modifier: Modifier = Modifier) {
         modifier = modifier,
         shape = CircleShape,
         color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(
                 horizontal = NewsAppTheme.spacing.small,
-                vertical = NewsAppTheme.spacing.tiny
+                vertical = NewsAppTheme.spacing.tiny,
             ),
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -41,7 +41,7 @@ fun SelectablePill(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     FilterChip(
         selected = selected,
@@ -49,14 +49,14 @@ fun SelectablePill(
         label = { Text(text = text) },
         modifier = modifier,
         enabled = enabled,
-        shape = CircleShape
+        shape = CircleShape,
     )
 }
 
 @PreviewLightDark
 @Composable
 private fun PillPreview(
-    @PreviewParameter(PillPreviewParameterProvider::class) state: PillPreviewState
+    @PreviewParameter(PillPreviewParameterProvider::class) state: PillPreviewState,
 ) {
     PreviewContainer(state) {
         Pill(text = it.text)
@@ -67,7 +67,7 @@ private fun PillPreview(
 @Composable
 private fun SelectablePillPreview(
     @PreviewParameter(SelectablePillPreviewParameterProvider::class) state:
-    SelectablePillPreviewState
+    SelectablePillPreviewState,
 ) {
     PreviewContainer(state) {
         SelectablePill(text = it.text, selected = it.selected, onClick = {}, enabled = it.enabled)

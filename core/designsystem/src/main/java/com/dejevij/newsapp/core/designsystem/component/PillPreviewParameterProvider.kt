@@ -5,7 +5,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 internal class PillPreviewParameterProvider : PreviewParameterProvider<PillPreviewState> {
     override val values = sequenceOf(
         PillPreviewState(text = "BBC News"),
-        PillPreviewState(text = "A very long source name that does not fit on one line")
+        PillPreviewState(text = "A very long source name that does not fit on one line"),
     )
 }
 

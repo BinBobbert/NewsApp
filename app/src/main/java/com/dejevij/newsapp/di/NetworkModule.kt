@@ -62,7 +62,7 @@ object NetworkModule {
     fun provideRetrofit(
         okHttpClient: OkHttpClient,
         json: Json,
-        @BaseUrl baseUrl: String
+        @BaseUrl baseUrl: String,
     ): Retrofit = Retrofit.Builder()
         .baseUrl(baseUrl)
         .client(okHttpClient)

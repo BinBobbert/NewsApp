@@ -11,7 +11,7 @@ data class ArticleResponse(
     val url: String,
     val urlToImage: String? = null,
     val publishedAt: String,
-    val content: String? = null
+    val content: String? = null,
 )
 
 @Serializable

@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -19,7 +21,6 @@ import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
 import com.dejevij.newsapp.data.DataError
 import com.dejevij.newsapp.model.Category
 import com.dejevij.newsapp.model.Country
-import com.dejevij.newsapp.ui.displayName
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -33,14 +34,16 @@ class ArticleListScreenTest {
     val composeTestRule = createComposeRule()
 
     private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val unitedStates = previewCountry("us", "United States", "🇺🇸")
+    private val netherlands = previewCountry("nl", "Netherlands", "🇳🇱")
     private val events = mutableListOf<String>()
     private val clickedUrls = mutableListOf<String>()
+    private val appliedCategories = mutableListOf<Set<Category>>()
+    private val selectedCountries = mutableListOf<Country>()
 
     @Test
     fun `loading shows a progress indicator`() {
-        setContent(
-            ArticleListUiState(content = ArticleListContent.Loading, country = Country.Default)
-        )
+        setContent(uiState(ArticleListContent.Loading))
 
         composeTestRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate))
             .assertIsDisplayed()
@@ -49,12 +52,7 @@ class ArticleListScreenTest {
     @Test
     fun `articles are shown and clicking one reports its url`() {
         val article = previewArticle(url = "https://example.com/a", title = "Headline A")
-        setContent(
-            ArticleListUiState(
-                content = ArticleListContent.Articles(listOf(article)),
-                country = Country.Default
-            )
-        )
+        setContent(uiState(ArticleListContent.Articles(listOf(article))))
 
         composeTestRule.onNodeWithText("Headline A").performClick()
 
@@ -62,28 +60,36 @@ class ArticleListScreenTest {
     }
 
     @Test
-    fun `empty state names the country and offers to change it`() {
-        setContent(
-            ArticleListUiState(content = ArticleListContent.Empty, country = Country.Default)
-        )
+    fun `empty state offers to change country through the picker`() {
+        setContent(uiState(ArticleListContent.Empty))
+
+        composeTestRule.onNodeWithText(string(R.string.article_list_empty, unitedStates.name))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(string(R.string.article_list_change_country)).performClick()
+        composeTestRule.onNodeWithText("Netherlands").performClick()
+
+        assertEquals(listOf(netherlands.country), selectedCountries)
+    }
+
+    @Test
+    fun `empty state with category filters offers to clear them`() {
+        setContent(uiState(ArticleListContent.Empty, selectedCategories = setOf(Category.SCIENCE)))
 
         composeTestRule.onNodeWithText(
-            string(R.string.article_list_empty, Country.Default.displayName)
+            string(R.string.article_list_empty_filtered, unitedStates.name),
         ).assertIsDisplayed()
-        composeTestRule.onNodeWithText(string(R.string.article_list_change_country)).performClick()
+        composeTestRule.onNodeWithText(string(R.string.article_list_clear_filters)).performClick()
 
-        assertEquals(listOf("country"), events)
+        assertEquals(listOf(emptySet<Category>()), appliedCategories)
     }
 
     @Test
     fun `empty state message is vertically centred`() {
-        setContent(
-            ArticleListUiState(content = ArticleListContent.Empty, country = Country.Default)
-        )
+        setContent(uiState(ArticleListContent.Empty))
 
         val root = composeTestRule.onRoot().getBoundsInRoot()
         val message = composeTestRule.onNodeWithText(
-            string(R.string.article_list_empty, Country.Default.displayName)
+            string(R.string.article_list_empty, unitedStates.name),
         ).getBoundsInRoot()
 
         assertTrue(message.top > root.height / 3)
@@ -91,12 +97,7 @@ class ArticleListScreenTest {
 
     @Test
     fun `error state shows the error and retries`() {
-        setContent(
-            ArticleListUiState(
-                content = ArticleListContent.Error(DataError.NoConnection),
-                country = Country.Default
-            )
-        )
+        setContent(uiState(ArticleListContent.Error(DataError.NoConnection)))
 
         composeTestRule.onNodeWithText(string(R.string.error_no_connection)).assertIsDisplayed()
         composeTestRule.onNodeWithText(string(R.string.retry)).performClick()
@@ -107,11 +108,10 @@ class ArticleListScreenTest {
     @Test
     fun `refresh error shows a snackbar that can retry`() {
         setContent(
-            ArticleListUiState(
-                content = ArticleListContent.Articles(listOf(previewArticle())),
-                country = Country.Default,
-                refreshError = DataError.RateLimited
-            )
+            uiState(
+                ArticleListContent.Articles(listOf(previewArticle())),
+                refreshError = DataError.RateLimited,
+            ),
         )
 
         composeTestRule.onNodeWithText(string(R.string.error_rate_limited)).assertIsDisplayed()
@@ -122,25 +122,56 @@ class ArticleListScreenTest {
     }
 
     @Test
-    fun `top bar actions report filter and country clicks`() {
-        setContent(
-            ArticleListUiState(
-                content = ArticleListContent.Empty,
-                country = Country.Default,
-                selectedCategories = setOf(Category.SPORTS)
-            )
-        )
+    fun `filter sheet applies the selected categories`() {
+        setContent(uiState(ArticleListContent.Empty, selectedCategories = setOf(Category.SPORTS)))
 
-        composeTestRule.onNodeWithContentDescription(
-            string(R.string.article_list_filter)
-        ).performClick()
-        composeTestRule.onNodeWithContentDescription(
-            string(R.string.article_list_country, Country.Default.displayName)
-        ).performClick()
         composeTestRule.onNodeWithText("1").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(string(R.string.article_list_filter))
+            .performClick()
+        composeTestRule.onNodeWithText(string(R.string.category_sports)).assertIsSelected()
+        composeTestRule.onNodeWithText(string(R.string.category_technology)).performClick()
+        composeTestRule.onNodeWithText(string(R.string.category_filter_apply)).performClick()
 
-        assertEquals(listOf("filter", "country"), events)
+        assertEquals(listOf(setOf(Category.SPORTS, Category.TECHNOLOGY)), appliedCategories)
     }
+
+    @Test
+    fun `filter sheet clear removes all categories`() {
+        setContent(uiState(ArticleListContent.Empty, selectedCategories = setOf(Category.SPORTS)))
+
+        composeTestRule.onNodeWithContentDescription(string(R.string.article_list_filter))
+            .performClick()
+        composeTestRule.onNodeWithText(string(R.string.category_filter_clear)).performClick()
+        composeTestRule.onNodeWithText(string(R.string.category_filter_clear)).assertIsNotEnabled()
+        composeTestRule.onNodeWithText(string(R.string.category_filter_apply)).performClick()
+
+        assertEquals(listOf(emptySet<Category>()), appliedCategories)
+    }
+
+    @Test
+    fun `country action opens the picker with the current country selected`() {
+        setContent(uiState(ArticleListContent.Empty))
+
+        composeTestRule.onNodeWithContentDescription(
+            string(R.string.article_list_country, unitedStates.name),
+        ).performClick()
+        composeTestRule.onNodeWithText("United States").assertIsSelected()
+        composeTestRule.onNodeWithText("Netherlands").performClick()
+
+        assertEquals(listOf(netherlands.country), selectedCountries)
+    }
+
+    private fun uiState(
+        content: ArticleListContent,
+        selectedCategories: Set<Category> = emptySet(),
+        refreshError: DataError? = null,
+    ) = ArticleListUiState(
+        content = content,
+        country = unitedStates,
+        countries = listOf(netherlands, unitedStates),
+        selectedCategories = selectedCategories,
+        refreshError = refreshError,
+    )
 
     private fun setContent(uiState: ArticleListUiState) {
         composeTestRule.setContent {
@@ -150,9 +181,9 @@ class ArticleListScreenTest {
                     onArticleClick = { clickedUrls += it },
                     onRefresh = { events += "refresh" },
                     onRetry = { events += "retry" },
-                    onFilterClick = { events += "filter" },
-                    onCountryClick = { events += "country" },
-                    onRefreshErrorDismiss = { events += "errorDismiss" }
+                    onCategoriesApply = { appliedCategories += it },
+                    onCountrySelect = { selectedCountries += it },
+                    onRefreshErrorDismiss = { events += "errorDismiss" },
                 )
             }
         }

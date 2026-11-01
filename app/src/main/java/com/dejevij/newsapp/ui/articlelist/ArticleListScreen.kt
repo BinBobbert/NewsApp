@@ -30,8 +30,11 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -50,9 +53,8 @@ import com.dejevij.newsapp.core.designsystem.component.SecondaryButton
 import com.dejevij.newsapp.core.designsystem.preview.PreviewContainer
 import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
 import com.dejevij.newsapp.data.DataError
+import com.dejevij.newsapp.model.Category
 import com.dejevij.newsapp.model.Country
-import com.dejevij.newsapp.ui.displayName
-import com.dejevij.newsapp.ui.flagEmoji
 import com.dejevij.newsapp.ui.messageRes
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,17 +64,18 @@ fun ArticleListScreen(
     onArticleClick: (url: String) -> Unit,
     onRefresh: () -> Unit,
     onRetry: () -> Unit,
-    onFilterClick: () -> Unit,
-    onCountryClick: () -> Unit,
+    onCategoriesApply: (Set<Category>) -> Unit,
+    onCountrySelect: (Country) -> Unit,
     onRefreshErrorDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
+    var openSheet by rememberSaveable { mutableStateOf<ArticleListSheet?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     RefreshErrorSnackbar(
         refreshError = uiState.refreshError,
         snackbarHostState = snackbarHostState,
         onRetry = onRetry,
-        onDismiss = onRefreshErrorDismiss
+        onDismiss = onRefreshErrorDismiss,
     )
 
     Scaffold(
@@ -81,45 +84,106 @@ fun ArticleListScreen(
             ArticleListTopBar(
                 country = uiState.country,
                 selectedCategoryCount = uiState.selectedCategories.size,
-                onFilterClick = onFilterClick,
-                onCountryClick = onCountryClick
+                onFilterClick = { openSheet = ArticleListSheet.Categories },
+                onCountryClick = { openSheet = ArticleListSheet.Country },
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = uiState.isRefreshing,
             onRefresh = onRefresh,
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             when (val content = uiState.content) {
                 ArticleListContent.Loading -> LoadingContent()
 
-                ArticleListContent.Empty -> MessageContent(
-                    message = stringResource(
-                        R.string.article_list_empty,
-                        uiState.country.displayName
-                    )
-                ) {
-                    SecondaryButton(
-                        text = stringResource(R.string.article_list_change_country),
-                        onClick = onCountryClick
-                    )
-                }
+                ArticleListContent.Empty -> EmptyContent(
+                    countryName = uiState.country.name,
+                    hasCategoryFilter = uiState.selectedCategories.isNotEmpty(),
+                    onClearFilters = { onCategoriesApply(emptySet()) },
+                    onChangeCountry = { openSheet = ArticleListSheet.Country },
+                )
 
                 is ArticleListContent.Error -> MessageContent(
-                    message = stringResource(content.error.messageRes)
+                    message = stringResource(content.error.messageRes),
                 ) {
                     PrimaryButton(text = stringResource(R.string.retry), onClick = onRetry)
                 }
 
                 is ArticleListContent.Articles -> ArticleList(
                     articles = content.articles,
-                    onArticleClick = onArticleClick
+                    onArticleClick = onArticleClick,
                 )
             }
+        }
+    }
+
+    ArticleListSheets(
+        openSheet = openSheet,
+        uiState = uiState,
+        onCategoriesApply = onCategoriesApply,
+        onCountrySelect = onCountrySelect,
+        onSheetChange = { openSheet = it },
+    )
+}
+
+@Composable
+private fun ArticleListSheets(
+    openSheet: ArticleListSheet?,
+    uiState: ArticleListUiState,
+    onCategoriesApply: (Set<Category>) -> Unit,
+    onCountrySelect: (Country) -> Unit,
+    onSheetChange: (ArticleListSheet?) -> Unit,
+) {
+    when (openSheet) {
+        ArticleListSheet.Categories -> CategoryFilterSheet(
+            selectedCategories = uiState.selectedCategories,
+            onApply = { categories ->
+                onSheetChange(null)
+                onCategoriesApply(categories)
+            },
+            onDismissRequest = { onSheetChange(null) },
+        )
+
+        ArticleListSheet.Country -> CountryPickerSheet(
+            countries = uiState.countries,
+            selectedCountry = uiState.country.country,
+            onCountrySelect = { country ->
+                onSheetChange(null)
+                onCountrySelect(country)
+            },
+            onDismissRequest = { onSheetChange(null) },
+        )
+
+        null -> Unit
+    }
+}
+
+@Composable
+private fun EmptyContent(
+    countryName: String,
+    hasCategoryFilter: Boolean,
+    onClearFilters: () -> Unit,
+    onChangeCountry: () -> Unit,
+) {
+    if (hasCategoryFilter) {
+        MessageContent(
+            message = stringResource(R.string.article_list_empty_filtered, countryName),
+        ) {
+            SecondaryButton(
+                text = stringResource(R.string.article_list_clear_filters),
+                onClick = onClearFilters,
+            )
+        }
+    } else {
+        MessageContent(message = stringResource(R.string.article_list_empty, countryName)) {
+            SecondaryButton(
+                text = stringResource(R.string.article_list_change_country),
+                onClick = onChangeCountry,
+            )
         }
     }
 }
@@ -129,7 +193,7 @@ private fun RefreshErrorSnackbar(
     refreshError: DataError?,
     snackbarHostState: SnackbarHostState,
     onRetry: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     if (refreshError == null) return
     val message = stringResource(refreshError.messageRes)
@@ -141,7 +205,7 @@ private fun RefreshErrorSnackbar(
         val result = snackbarHostState.showSnackbar(
             message = message,
             actionLabel = actionLabel,
-            duration = SnackbarDuration.Long
+            duration = SnackbarDuration.Long,
         )
         if (result == SnackbarResult.ActionPerformed) currentOnRetry()
         currentOnDismiss()
@@ -151,24 +215,24 @@ private fun RefreshErrorSnackbar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ArticleListTopBar(
-    country: Country,
+    country: CountryViewData,
     selectedCategoryCount: Int,
     onFilterClick: () -> Unit,
-    onCountryClick: () -> Unit
+    onCountryClick: () -> Unit,
 ) {
     TopAppBar(
         title = { Text(text = stringResource(R.string.article_list_title)) },
         actions = {
             val countryDescription =
-                stringResource(R.string.article_list_country, country.displayName)
+                stringResource(R.string.article_list_country, country.name)
             IconButton(
                 onClick = onCountryClick,
-                modifier = Modifier.semantics { contentDescription = countryDescription }
+                modifier = Modifier.semantics { contentDescription = countryDescription },
             ) {
                 Text(
-                    text = country.flagEmoji,
+                    text = country.flag,
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.clearAndSetSemantics {}
+                    modifier = Modifier.clearAndSetSemantics {},
                 )
             }
             IconButton(onClick = onFilterClick) {
@@ -179,15 +243,15 @@ private fun ArticleListTopBar(
                         ) {
                             Badge { Text(text = "$selectedCategoryCount") }
                         }
-                    }
+                    },
                 ) {
                     Icon(
                         painter = painterResource(DesignSystemR.drawable.ic_filter_list),
-                        contentDescription = stringResource(R.string.article_list_filter)
+                        contentDescription = stringResource(R.string.article_list_filter),
                     )
                 }
             }
-        }
+        },
     )
 }
 
@@ -202,7 +266,7 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
 private fun MessageContent(
     message: String,
     modifier: Modifier = Modifier,
-    action: @Composable () -> Unit
+    action: @Composable () -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -210,12 +274,12 @@ private fun MessageContent(
             .verticalScroll(rememberScrollState())
             .padding(NewsAppTheme.spacing.large),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(NewsAppTheme.spacing.default))
         action()
@@ -226,12 +290,12 @@ private fun MessageContent(
 private fun ArticleList(
     articles: List<ArticleViewData>,
     onArticleClick: (url: String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(NewsAppTheme.spacing.default),
-        verticalArrangement = Arrangement.spacedBy(NewsAppTheme.spacing.default)
+        verticalArrangement = Arrangement.spacedBy(NewsAppTheme.spacing.default),
     ) {
         items(items = articles, key = { it.url }) { article ->
             ArticleCard(article = article, onClick = { onArticleClick(article.url) })
@@ -242,7 +306,7 @@ private fun ArticleList(
 @PreviewLightDark
 @Composable
 private fun ArticleListScreenPreview(
-    @PreviewParameter(ArticleListScreenPreviewParameterProvider::class) uiState: ArticleListUiState
+    @PreviewParameter(ArticleListScreenPreviewParameterProvider::class) uiState: ArticleListUiState,
 ) {
     PreviewContainer(uiState, contentPadding = 0.dp) {
         ArticleListScreen(
@@ -250,9 +314,11 @@ private fun ArticleListScreenPreview(
             onArticleClick = {},
             onRefresh = {},
             onRetry = {},
-            onFilterClick = {},
-            onCountryClick = {},
-            onRefreshErrorDismiss = {}
+            onCategoriesApply = {},
+            onCountrySelect = {},
+            onRefreshErrorDismiss = {},
         )
     }
 }
+
+private enum class ArticleListSheet { Categories, Country }

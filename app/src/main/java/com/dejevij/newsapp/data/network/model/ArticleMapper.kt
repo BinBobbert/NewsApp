@@ -19,6 +19,6 @@ fun ArticleResponse.toArticleOrNull(): Article? {
         description = description?.takeIf { it.isNotBlank() },
         content = content?.replace(TRUNCATION_MARKER, "")?.takeIf { it.isNotBlank() },
         imageUrl = urlToImage?.takeIf { it.isNotBlank() },
-        publishedAt = publishedAt
+        publishedAt = publishedAt,
     )
 }

@@ -21,16 +21,16 @@ class ArticleMapperTest {
                 description = "Description",
                 content = "Content",
                 imageUrl = "https://example.com/image.jpg",
-                publishedAt = Instant.parse("2026-11-01T09:30:00Z")
+                publishedAt = Instant.parse("2026-11-01T09:30:00Z"),
             ),
-            article
+            article,
         )
     }
 
     @Test
     fun `strips the truncation marker from content`() {
         val article = articleResponse(
-            content = "First 200 characters… [+3412 chars]"
+            content = "First 200 characters… [+3412 chars]",
         ).toArticleOrNull()
 
         assertEquals("First 200 characters…", article?.content)
@@ -41,7 +41,7 @@ class ArticleMapperTest {
         val article = articleResponse(
             author = " ",
             description = "",
-            urlToImage = ""
+            urlToImage = "",
         ).toArticleOrNull()
 
         assertNull(article?.author)
@@ -67,7 +67,7 @@ internal fun articleResponse(
     description: String? = "Description",
     content: String? = "Content",
     urlToImage: String? = "https://example.com/image.jpg",
-    publishedAt: String = "2026-11-01T09:30:00Z"
+    publishedAt: String = "2026-11-01T09:30:00Z",
 ) = ArticleResponse(
     source = SourceResponse(id = "example", name = "Example News"),
     author = author,
@@ -76,5 +76,5 @@ internal fun articleResponse(
     url = url,
     urlToImage = urlToImage,
     publishedAt = publishedAt,
-    content = content
+    content = content,
 )

@@ -14,7 +14,7 @@ fun PrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     Button(onClick = onClick, modifier = modifier, enabled = enabled) {
         Text(text = text)
@@ -26,7 +26,7 @@ fun SecondaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     OutlinedButton(onClick = onClick, modifier = modifier, enabled = enabled) {
         Text(text = text)
@@ -36,7 +36,7 @@ fun SecondaryButton(
 @PreviewLightDark
 @Composable
 private fun PrimaryButtonPreview(
-    @PreviewParameter(ButtonPreviewParameterProvider::class) state: ButtonPreviewState
+    @PreviewParameter(ButtonPreviewParameterProvider::class) state: ButtonPreviewState,
 ) {
     PreviewContainer(state) {
         PrimaryButton(text = it.text, onClick = {}, enabled = it.enabled)
@@ -46,7 +46,7 @@ private fun PrimaryButtonPreview(
 @PreviewLightDark
 @Composable
 private fun SecondaryButtonPreview(
-    @PreviewParameter(ButtonPreviewParameterProvider::class) state: ButtonPreviewState
+    @PreviewParameter(ButtonPreviewParameterProvider::class) state: ButtonPreviewState,
 ) {
     PreviewContainer(state) {
         SecondaryButton(text = it.text, onClick = {}, enabled = it.enabled)

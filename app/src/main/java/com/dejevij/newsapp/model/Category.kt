@@ -14,5 +14,5 @@ enum class Category(val apiValue: String) {
 
     SPORTS("sports"),
 
-    TECHNOLOGY("technology")
+    TECHNOLOGY("technology"),
 }

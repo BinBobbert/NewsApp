@@ -14,7 +14,7 @@ val newsApiKey: String = providers.environmentVariable("NEWS_API_KEY")
             .map { text ->
                 val properties = Properties().apply { load(text.reader()) }
                 properties.getProperty("NEWS_API_KEY").orEmpty()
-            }
+            },
     )
     .getOrElse("")
 

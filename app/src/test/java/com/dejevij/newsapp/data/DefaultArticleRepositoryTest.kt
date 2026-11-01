@@ -46,7 +46,7 @@ class DefaultArticleRepositoryTest {
             headlines(
                 articleResponse(url = "a", title = "First"),
                 articleResponse(url = "b"),
-                articleResponse(url = "a", title = "Duplicate")
+                articleResponse(url = "a", title = "Duplicate"),
             )
         }
 
@@ -94,14 +94,14 @@ class DefaultArticleRepositoryTest {
         val expected = mapOf(
             401 to DataError.Unauthorized,
             429 to DataError.RateLimited,
-            500 to DataError.Server(500)
+            500 to DataError.Server(500),
         )
 
         expected.forEach { (code, error) ->
             newsApi.response = { throw httpException(code) }
             assertEquals(
                 RefreshResult.Failure(error),
-                repository.refreshTopHeadlines(Country.Default)
+                repository.refreshTopHeadlines(Country.Default),
             )
         }
     }
@@ -118,7 +118,7 @@ class DefaultArticleRepositoryTest {
     private fun headlines(vararg articles: ArticleResponse) = TopHeadlinesResponse(
         status = "ok",
         totalResults = articles.size,
-        articles = articles.toList()
+        articles = articles.toList(),
     )
 
     private fun httpException(code: Int) =

@@ -25,7 +25,7 @@ class NewsApiTest {
         val retrofit = NetworkModule.provideRetrofit(
             okHttpClient = okHttpClient,
             json = NetworkModule.provideJson(),
-            baseUrl = server.url("/").toString()
+            baseUrl = server.url("/").toString(),
         )
         api = NetworkModule.provideNewsApi(retrofit)
     }
@@ -65,9 +65,9 @@ class NewsApiTest {
                 url = "https://example.com/second",
                 urlToImage = null,
                 publishedAt = "2026-11-01T08:00:00Z",
-                content = null
+                content = null,
             ),
-            response.articles[1]
+            response.articles[1],
         )
     }
 
@@ -77,7 +77,7 @@ class NewsApiTest {
             MockResponse.Builder()
                 .code(401)
                 .body("""{"status":"error","code":"apiKeyInvalid","message":"Invalid key"}""")
-                .build()
+                .build(),
         )
 
         try {
