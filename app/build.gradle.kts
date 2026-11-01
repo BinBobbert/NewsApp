@@ -38,6 +38,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "NEWS_API_KEY", "\"$newsApiKey\"")
+        buildConfigField("String", "NEWS_API_BASE_URL", "\"https://newsapi.org/\"")
     }
 
     buildTypes {
@@ -83,7 +84,7 @@ kover {
                     "com.dejevij.newsapp.MainActivity*",
                     "com.dejevij.newsapp.NewsApplication*",
                     "*Hilt_*",
-                    "*_Factory",
+                    "*_Factory*",
                     "*_GeneratedInjector",
                     "*_HiltModules*",
                     "*_MembersInjector",
