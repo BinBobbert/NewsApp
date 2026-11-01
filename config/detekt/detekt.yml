@@ -7,5 +7,7 @@ complexity:
     ignoreAnnotated: ['Composable']
 
 style:
+  FunctionOnlyReturningConstant:
+    ignoreAnnotated: ['Provides']
   UnusedPrivateMember:
     ignoreAnnotated: ['Preview']

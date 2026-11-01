@@ -1,0 +1,27 @@
+{
+  "status": "ok",
+  "totalResults": 2,
+  "articles": [
+    {
+      "source": { "id": "bbc-news", "name": "BBC News" },
+      "author": "Jane Doe",
+      "title": "First headline",
+      "description": "First description",
+      "url": "https://example.com/first",
+      "urlToImage": "https://example.com/first.jpg",
+      "publishedAt": "2026-11-01T09:30:00Z",
+      "content": "First content… [+1234 chars]",
+      "unknownField": "ignored"
+    },
+    {
+      "source": { "id": null, "name": "Example" },
+      "author": null,
+      "title": "Second headline",
+      "description": null,
+      "url": "https://example.com/second",
+      "urlToImage": null,
+      "publishedAt": "2026-11-01T08:00:00Z",
+      "content": null
+    }
+  ]
+}
