@@ -1,14 +1,10 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.newsapp.android.application)
+    alias(libs.plugins.newsapp.android.compose)
+    alias(libs.plugins.newsapp.hilt)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.kover)
 }
 
 val newsApiKey: String = providers.environmentVariable("NEWS_API_KEY")
@@ -24,18 +20,11 @@ val newsApiKey: String = providers.environmentVariable("NEWS_API_KEY")
 
 android {
     namespace = "com.dejevij.newsapp"
-    compileSdk {
-        version = release(37)
-    }
 
     defaultConfig {
         applicationId = "com.dejevij.newsapp"
-        minSdk = 24
-        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "NEWS_API_KEY", "\"$newsApiKey\"")
         buildConfigField("String", "NEWS_API_BASE_URL", "\"https://newsapi.org/\"")
@@ -49,62 +38,27 @@ android {
             }
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
     buildFeatures {
-        compose = true
         buildConfig = true
     }
-}
-
-ktlint {
-    version = libs.versions.ktlint
-    android = true
-}
-
-detekt {
-    buildUponDefaultConfig = true
-    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
 }
 
 kover {
     reports {
         filters {
             excludes {
-                packages(
-                    "com.dejevij.newsapp.di",
-                    "com.dejevij.newsapp.ui",
-                    "dagger.hilt.internal.aggregatedroot.codegen",
-                    "hilt_aggregated_deps"
-                )
-                classes(
-                    "com.dejevij.newsapp.BuildConfig",
-                    "com.dejevij.newsapp.MainActivity*",
-                    "com.dejevij.newsapp.NewsApplication*",
-                    "*Hilt_*",
-                    "*_Factory*",
-                    "*_GeneratedInjector",
-                    "*_HiltModules*",
-                    "*_MembersInjector",
-                    "*ComposableSingletons*"
-                )
+                packages("com.dejevij.newsapp.di", "com.dejevij.newsapp.ui")
+                classes("com.dejevij.newsapp.MainActivity*", "com.dejevij.newsapp.NewsApplication*")
             }
         }
     }
 }
 
 dependencies {
-    ktlintRuleset(libs.compose.rules.ktlint)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.kotlinx.coroutines.android)
-
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit)
@@ -112,19 +66,14 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
 
-    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.okhttp.mockwebserver)
 
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
