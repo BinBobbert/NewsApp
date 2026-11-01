@@ -13,7 +13,6 @@ import androidx.compose.ui.platform.LocalContext
 @Composable
 fun NewsAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Material You colours from the wallpaper, available on Android 12+.
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {

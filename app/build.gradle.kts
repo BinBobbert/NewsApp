@@ -9,8 +9,6 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-// NEWS_API_KEY comes from local.properties (git-ignored) on dev machines,
-// or from an environment variable on CI. Never commit the key itself.
 val newsApiKey: String = providers.environmentVariable("NEWS_API_KEY")
     .orElse(
         providers.fileContents(rootProject.layout.projectDirectory.file("local.properties"))
@@ -64,7 +62,6 @@ ktlint {
 }
 
 detekt {
-    // Our detekt.yml only lists overrides; everything else uses detekt's defaults.
     buildUponDefaultConfig = true
     config.setFrom(rootProject.file("config/detekt/detekt.yml"))
 }
