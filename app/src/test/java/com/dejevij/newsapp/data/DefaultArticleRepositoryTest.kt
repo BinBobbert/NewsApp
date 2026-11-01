@@ -41,6 +41,23 @@ class DefaultArticleRepositoryTest {
     }
 
     @Test
+    fun `refresh keeps only the first article for each url`() = runTest {
+        newsApi.response = {
+            headlines(
+                articleResponse(url = "a", title = "First"),
+                articleResponse(url = "b"),
+                articleResponse(url = "a", title = "Duplicate")
+            )
+        }
+
+        repository.refreshTopHeadlines(Country.Default)
+
+        val articles = repository.topHeadlines.first()
+        assertEquals(listOf("a", "b"), articles.map { it.url })
+        assertEquals("First", articles.first().title)
+    }
+
+    @Test
     fun `refresh skips removed articles`() = runTest {
         newsApi.response = {
             headlines(articleResponse(url = "a"), articleResponse(url = "b", title = "[Removed]"))

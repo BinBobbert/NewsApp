@@ -4,11 +4,14 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.height
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.dejevij.newsapp.R
@@ -18,6 +21,7 @@ import com.dejevij.newsapp.model.Category
 import com.dejevij.newsapp.model.Country
 import com.dejevij.newsapp.ui.displayName
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -69,6 +73,20 @@ class ArticleListScreenTest {
         composeTestRule.onNodeWithText(string(R.string.article_list_change_country)).performClick()
 
         assertEquals(listOf("country"), events)
+    }
+
+    @Test
+    fun `empty state message is vertically centred`() {
+        setContent(
+            ArticleListUiState(content = ArticleListContent.Empty, country = Country.Default)
+        )
+
+        val root = composeTestRule.onRoot().getBoundsInRoot()
+        val message = composeTestRule.onNodeWithText(
+            string(R.string.article_list_empty, Country.Default.displayName)
+        ).getBoundsInRoot()
+
+        assertTrue(message.top > root.height / 3)
     }
 
     @Test
