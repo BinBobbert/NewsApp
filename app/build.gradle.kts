@@ -56,6 +56,7 @@ kover {
 
 dependencies {
     implementation(projects.core.designsystem)
+    kover(projects.core.designsystem)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
