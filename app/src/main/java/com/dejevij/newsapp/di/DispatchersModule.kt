@@ -8,7 +8,6 @@ import javax.inject.Qualifier
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
-// Qualifiers tell apart two bindings of the same type (both are CoroutineDispatcher).
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class IoDispatcher
