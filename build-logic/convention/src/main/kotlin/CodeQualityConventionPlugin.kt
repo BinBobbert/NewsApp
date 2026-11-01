@@ -35,7 +35,7 @@ class CodeQualityConventionPlugin : Plugin<Project> {
                         classes(
                             "*.BuildConfig",
                             "*.preview.*",
-                            "*PreviewParameterProvider",
+                            "*PreviewParameterProvider*",
                             "*PreviewState",
                             "*Hilt_*",
                             "*_Factory*",

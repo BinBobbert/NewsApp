@@ -5,17 +5,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
 
 @Composable
 fun <T> PreviewContainer(
     parameter: T,
     modifier: Modifier = Modifier,
+    contentPadding: Dp = NewsAppTheme.spacing.default,
     content: @Composable (T) -> Unit
 ) {
     NewsAppTheme {
         Surface(modifier = modifier) {
-            Box(modifier = Modifier.padding(NewsAppTheme.spacing.default)) {
+            Box(modifier = Modifier.padding(contentPadding)) {
                 content(parameter)
             }
         }

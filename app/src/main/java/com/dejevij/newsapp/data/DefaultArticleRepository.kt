@@ -31,7 +31,7 @@ class DefaultArticleRepository @Inject constructor(private val newsApi: NewsApi)
     // CancellationException and break structured concurrency.
     override suspend fun refreshTopHeadlines(country: Country): RefreshResult = try {
         val response = newsApi.getTopHeadlines(country = country.code, pageSize = PAGE_SIZE)
-        cache.value = response.articles.mapNotNull { it.toArticleOrNull() }
+        cache.value = response.articles.mapNotNull { it.toArticleOrNull() }.distinctBy { it.url }
         RefreshResult.Success
     } catch (e: HttpException) {
         RefreshResult.Failure(e.toDataError())
