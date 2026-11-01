@@ -23,5 +23,8 @@ dependencyResolutionManagement {
     }
 }
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 rootProject.name = "NewsApp"
 include(":app")
+include(":core:designsystem")

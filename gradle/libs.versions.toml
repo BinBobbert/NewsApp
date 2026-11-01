@@ -54,6 +54,7 @@ kover-gradlePlugin = { group = "org.jetbrains.kotlinx", name = "kover-gradle-plu
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
@@ -63,6 +64,7 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 newsapp-android-application = { id = "newsapp.android.application" }
+newsapp-android-library = { id = "newsapp.android.library" }
 newsapp-android-compose = { id = "newsapp.android.compose" }
 newsapp-hilt = { id = "newsapp.hilt" }
 newsapp-code-quality = { id = "newsapp.code.quality" }
