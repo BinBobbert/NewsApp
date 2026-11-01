@@ -5,7 +5,6 @@ on:
   push:
     branches: [main]
 
-# A new push to the same PR cancels the run that's already in progress.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

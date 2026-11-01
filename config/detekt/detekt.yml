@@ -1,18 +1,11 @@
-# Overrides on top of detekt's default config (buildUponDefaultConfig = true).
-# Run `./gradlew detektGenerateConfig` to see every available rule.
-
 naming:
   FunctionNaming:
-    # Composables are named like types (PascalCase).
     ignoreAnnotated: ['Composable']
 
 complexity:
   LongParameterList:
-    # Composables commonly take many optional parameters (modifier, colors, callbacks...).
     ignoreAnnotated: ['Composable']
 
 style:
   UnusedPrivateMember:
-    # @Preview functions are only used by the IDE.
     ignoreAnnotated: ['Preview']
-

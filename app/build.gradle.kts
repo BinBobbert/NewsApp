@@ -3,12 +3,12 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
 }
 
-// NEWS_API_KEY comes from local.properties (git-ignored) on dev machines,
-// or from an environment variable on CI. Never commit the key itself.
 val newsApiKey: String = providers.environmentVariable("NEWS_API_KEY")
     .orElse(
         providers.fileContents(rootProject.layout.projectDirectory.file("local.properties"))
@@ -62,7 +62,6 @@ ktlint {
 }
 
 detekt {
-    // Our detekt.yml only lists overrides; everything else uses detekt's defaults.
     buildUponDefaultConfig = true
     config.setFrom(rootProject.file("config/detekt/detekt.yml"))
 }
@@ -73,6 +72,10 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
