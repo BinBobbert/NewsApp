@@ -55,7 +55,7 @@ class ArticleListViewModel @Inject constructor(
                     .onStart { emit(ArticleListLoadState.Loading) }
                     .transformLatest { mode ->
                         emit(mode)
-                        emit(load(country, categories, mode))
+                        emit(loadArticles(country, categories, mode))
                     }
             }
 
@@ -120,7 +120,7 @@ class ArticleListViewModel @Inject constructor(
         viewModelScope.launch { countryRepository.setCountry(country) }
     }
 
-    private suspend fun load(
+    private suspend fun loadArticles(
         country: Country,
         categories: Set<Category>,
         mode: ArticleListLoadState,

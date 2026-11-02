@@ -1,7 +1,6 @@
 package com.dejevij.newsapp.testing
 
 import com.dejevij.newsapp.data.ArticleRepository
-import com.dejevij.newsapp.data.CountryRepository
 import com.dejevij.newsapp.data.RefreshResult
 import com.dejevij.newsapp.model.Article
 import com.dejevij.newsapp.model.Category
@@ -33,16 +32,5 @@ class FakeArticleRepository : ArticleRepository {
         val result = nextResult
         if (result == RefreshResult.Success) articles.value = nextArticles
         return result
-    }
-}
-
-class FakeCountryRepository(initial: Country = Country.Default) : CountryRepository {
-
-    private val state = MutableStateFlow(initial)
-
-    override val country: Flow<Country> = state
-
-    override suspend fun setCountry(country: Country) {
-        state.value = country
     }
 }
