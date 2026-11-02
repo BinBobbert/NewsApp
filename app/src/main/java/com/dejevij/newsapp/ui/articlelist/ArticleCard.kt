@@ -24,6 +24,7 @@ import coil3.compose.AsyncImage
 import com.dejevij.newsapp.core.designsystem.component.Pill
 import com.dejevij.newsapp.core.designsystem.preview.PreviewContainer
 import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
+import com.dejevij.newsapp.ui.component.ArticleImage
 
 @Composable
 fun ArticleCard(article: ArticleViewData, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -63,23 +64,6 @@ fun ArticleCard(article: ArticleViewData, onClick: () -> Unit, modifier: Modifie
     }
 }
 
-@Composable
-private fun ArticleImage(imageUrl: String, modifier: Modifier = Modifier) {
-    var isError by rememberSaveable(imageUrl) { mutableStateOf(false) }
-    if (isError) return
-
-    AsyncImage(
-        model = imageUrl,
-        contentDescription = null,
-        contentScale = ContentScale.Crop,
-        onError = { isError = true },
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(IMAGE_ASPECT_RATIO)
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-    )
-}
-
 @PreviewLightDark
 @Composable
 private fun ArticleCardPreview(
@@ -89,5 +73,3 @@ private fun ArticleCardPreview(
         ArticleCard(article = it, onClick = {})
     }
 }
-
-private const val IMAGE_ASPECT_RATIO = 16f / 9f

@@ -50,9 +50,10 @@ import com.dejevij.newsapp.core.designsystem.preview.PreviewContainer
 import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
 import com.dejevij.newsapp.model.Category
 import com.dejevij.newsapp.model.Country
+import com.dejevij.newsapp.ui.component.LoadingContent
+import com.dejevij.newsapp.ui.component.MessageContent
 import com.dejevij.newsapp.ui.messageRes
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleListScreen(
     uiState: ArticleListUiState,
@@ -217,37 +218,6 @@ private fun ArticleListTopBar(
             }
         },
     )
-}
-
-@Composable
-private fun LoadingContent(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun MessageContent(
-    message: String,
-    modifier: Modifier = Modifier,
-    action: @Composable () -> Unit,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(NewsAppTheme.spacing.large),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(NewsAppTheme.spacing.default))
-        action()
-    }
 }
 
 @Composable
