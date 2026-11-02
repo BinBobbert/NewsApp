@@ -25,7 +25,7 @@ class ResponseCacheInterceptor @Inject constructor() : Interceptor {
         const val HEADER_CACHE_CONTROL = "Cache-Control"
         const val HEADER_PRAGMA = "Pragma"
         const val HEADER_EXPIRES = "Expires"
-        const val MAX_AGE_MINUTES = 15
+        const val MAX_AGE_MINUTES = 30
         val MAX_AGE = CacheControl.Builder().maxAge(MAX_AGE_MINUTES, TimeUnit.MINUTES).build()
     }
 }

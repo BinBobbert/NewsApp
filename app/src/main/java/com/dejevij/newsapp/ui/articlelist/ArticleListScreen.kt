@@ -20,19 +20,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,7 +48,6 @@ import com.dejevij.newsapp.core.designsystem.component.PrimaryButton
 import com.dejevij.newsapp.core.designsystem.component.SecondaryButton
 import com.dejevij.newsapp.core.designsystem.preview.PreviewContainer
 import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
-import com.dejevij.newsapp.data.DataError
 import com.dejevij.newsapp.model.Category
 import com.dejevij.newsapp.model.Country
 import com.dejevij.newsapp.ui.messageRes
@@ -61,22 +56,15 @@ import com.dejevij.newsapp.ui.messageRes
 @Composable
 fun ArticleListScreen(
     uiState: ArticleListUiState,
+    snackbarHostState: SnackbarHostState,
     onArticleClick: (url: String) -> Unit,
     onRefresh: () -> Unit,
     onRetry: () -> Unit,
     onCategoriesApply: (Set<Category>) -> Unit,
     onCountrySelect: (Country) -> Unit,
-    onRefreshErrorDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var openSheet by rememberSaveable { mutableStateOf<ArticleListSheet?>(null) }
-    val snackbarHostState = remember { SnackbarHostState() }
-    RefreshErrorSnackbar(
-        refreshError = uiState.refreshError,
-        snackbarHostState = snackbarHostState,
-        onRetry = onRetry,
-        onDismiss = onRefreshErrorDismiss,
-    )
 
     Scaffold(
         modifier = modifier,
@@ -188,30 +176,6 @@ private fun EmptyContent(
     }
 }
 
-@Composable
-private fun RefreshErrorSnackbar(
-    refreshError: DataError?,
-    snackbarHostState: SnackbarHostState,
-    onRetry: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    if (refreshError == null) return
-    val message = stringResource(refreshError.messageRes)
-    val actionLabel = stringResource(R.string.retry)
-    val currentOnRetry by rememberUpdatedState(onRetry)
-    val currentOnDismiss by rememberUpdatedState(onDismiss)
-
-    LaunchedEffect(refreshError) {
-        val result = snackbarHostState.showSnackbar(
-            message = message,
-            actionLabel = actionLabel,
-            duration = SnackbarDuration.Long,
-        )
-        if (result == SnackbarResult.ActionPerformed) currentOnRetry()
-        currentOnDismiss()
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ArticleListTopBar(
@@ -311,12 +275,12 @@ private fun ArticleListScreenPreview(
     PreviewContainer(uiState, contentPadding = 0.dp) {
         ArticleListScreen(
             uiState = it,
+            snackbarHostState = remember { SnackbarHostState() },
             onArticleClick = {},
             onRefresh = {},
             onRetry = {},
             onCategoriesApply = {},
             onCountrySelect = {},
-            onRefreshErrorDismiss = {},
         )
     }
 }
