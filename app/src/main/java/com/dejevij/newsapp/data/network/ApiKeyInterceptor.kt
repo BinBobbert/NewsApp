@@ -15,6 +15,7 @@ class ApiKeyInterceptor @Inject constructor(@ApiKey private val apiKey: String) 
     }
 
     companion object {
+
         const val HEADER = "X-Api-Key"
     }
 }

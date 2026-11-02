@@ -166,6 +166,7 @@ class NewsApiTest {
         requireNotNull(javaClass.classLoader?.getResource(name)).readText()
 
     private companion object {
+
         const val API_KEY = "test-api-key"
         const val CACHE_MAX_BYTES = 1024L * 1024
     }
