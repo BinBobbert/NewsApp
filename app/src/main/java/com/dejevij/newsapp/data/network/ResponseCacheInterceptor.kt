@@ -21,6 +21,7 @@ class ResponseCacheInterceptor @Inject constructor() : Interceptor {
     }
 
     private companion object {
+
         const val HEADER_CACHE_CONTROL = "Cache-Control"
         const val HEADER_PRAGMA = "Pragma"
         const val HEADER_EXPIRES = "Expires"

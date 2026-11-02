@@ -6,6 +6,7 @@ import java.util.Locale
 value class Country private constructor(val code: String) {
 
     companion object {
+
         val Default = Country("us")
 
         // Countries supported by NewsAPI's top-headlines endpoint (ISO 3166-1 alpha-2).

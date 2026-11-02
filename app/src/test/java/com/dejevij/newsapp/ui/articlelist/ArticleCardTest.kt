@@ -89,6 +89,7 @@ class ArticleCardTest {
         composeTestRule.onNodeWithText(TITLE, useUnmergedTree = true).getBoundsInRoot().top
 
     private companion object {
+
         const val TITLE = "Headline"
         const val LOADING_IMAGE_URL = "https://example.com/image.jpg"
         val IMAGE_SHOWN_MIN_TOP = 120.dp
