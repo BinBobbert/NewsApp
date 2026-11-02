@@ -25,6 +25,7 @@ class CountryViewDataMapper @Inject constructor() {
     }
 
     private companion object {
+
         const val REGIONAL_INDICATOR_A = 0x1F1E6
     }
 }

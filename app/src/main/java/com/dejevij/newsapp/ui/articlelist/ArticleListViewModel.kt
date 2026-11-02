@@ -142,6 +142,7 @@ class ArticleListViewModel @Inject constructor(
     }
 
     private companion object {
+
         const val CATEGORIES_KEY = "categories"
     }
 }
