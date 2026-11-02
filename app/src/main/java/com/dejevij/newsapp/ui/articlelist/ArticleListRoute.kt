@@ -30,7 +30,14 @@ fun ArticleListRoute(
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
-            is ArticleListEvent.OpenArticle -> uriHandler.openUri(event.url)
+            is ArticleListEvent.OpenArticle -> try {
+                uriHandler.openUri(event.url)
+            } catch (_: IllegalArgumentException) {
+                // AndroidUriHandler reports a missing browser as IllegalArgumentException.
+                scope.launch {
+                    snackbarHostState.showSnackbar(resources.getString(R.string.error_no_browser))
+                }
+            }
 
             is ArticleListEvent.ShowRefreshError -> scope.launch {
                 val result = snackbarHostState.showSnackbar(

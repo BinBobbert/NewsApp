@@ -36,6 +36,7 @@ class ArticleListRouteTest {
         nextArticles = listOf(article("https://example.com/a"))
     }
     private val openedUris = mutableListOf<String>()
+    private var browserAvailable = true
 
     @Test
     fun `clicking an article opens its url`() {
@@ -45,6 +46,19 @@ class ArticleListRouteTest {
         composeTestRule.waitForIdle()
 
         assertEquals(listOf("https://example.com/a"), openedUris)
+    }
+
+    @Test
+    fun `clicking an article without a browser shows a message instead of crashing`() {
+        browserAvailable = false
+        setRoute()
+
+        composeTestRule.onNodeWithText("Headline").performClick()
+
+        composeTestRule.waitUntil {
+            composeTestRule.onAllNodesWithText(context.getString(R.string.error_no_browser))
+                .fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     @Test
@@ -76,6 +90,7 @@ class ArticleListRouteTest {
         )
         val uriHandler = object : UriHandler {
             override fun openUri(uri: String) {
+                require(browserAvailable) { "Can't open $uri." }
                 openedUris += uri
             }
         }

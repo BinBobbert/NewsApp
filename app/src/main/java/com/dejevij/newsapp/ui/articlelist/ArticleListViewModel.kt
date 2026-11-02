@@ -87,7 +87,9 @@ class ArticleListViewModel @Inject constructor(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+        // Lazily rather than WhileSubscribed: restarting this pipeline starts a new full load,
+        // which would reset the list and its scroll position whenever the screen returns.
+        started = SharingStarted.Lazily,
         initialValue = ArticleListUiState(
             content = ArticleListContent.Loading,
             country = countries.first { it.country == Country.forLocale(Locale.getDefault()) },
@@ -141,6 +143,5 @@ class ArticleListViewModel @Inject constructor(
 
     private companion object {
         const val CATEGORIES_KEY = "categories"
-        const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 }

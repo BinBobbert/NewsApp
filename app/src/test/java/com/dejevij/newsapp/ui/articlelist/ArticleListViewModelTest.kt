@@ -14,9 +14,11 @@ import com.dejevij.newsapp.testing.FixedClock
 import com.dejevij.newsapp.testing.MainDispatcherRule
 import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -42,6 +44,23 @@ class ArticleListViewModelTest {
         val content = viewModel.uiState.value.content as ArticleListContent.Articles
         assertEquals(listOf("a", "b"), content.articles.map { it.url })
         assertEquals(listOf(Country.Default to emptySet<Category>()), articleRepository.requests)
+    }
+
+    @Test
+    fun `does not reload when the screen stops and starts collecting again`() = runTest {
+        articleRepository.nextArticles = listOf(article("a"))
+        val viewModel = viewModel()
+        val firstCollection = collectUiState(viewModel)
+
+        firstCollection.cancel()
+        advanceTimeBy(60_000)
+        collectUiState(viewModel)
+
+        assertEquals(1, articleRepository.requests.size)
+        assertEquals(
+            1,
+            (viewModel.uiState.value.content as ArticleListContent.Articles).articles.size,
+        )
     }
 
     @Test
@@ -147,11 +166,10 @@ class ArticleListViewModelTest {
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun TestScope.collectUiState(viewModel: ArticleListViewModel) {
+    private fun TestScope.collectUiState(viewModel: ArticleListViewModel): Job =
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-    }
 
     private fun article(url: String) = Article(
         url = url,
