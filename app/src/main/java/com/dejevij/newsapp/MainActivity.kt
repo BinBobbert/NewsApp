@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
-import com.dejevij.newsapp.ui.articlelist.ArticleListRoute
+import com.dejevij.newsapp.ui.navigation.NewsNavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NewsAppTheme {
-                ArticleListRoute()
+                NewsNavDisplay()
             }
         }
     }

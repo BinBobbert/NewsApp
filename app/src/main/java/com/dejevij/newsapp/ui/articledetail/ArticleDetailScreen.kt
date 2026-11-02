@@ -13,9 +13,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,8 +40,9 @@ import com.dejevij.newsapp.ui.component.MessageContent
 @Composable
 fun ArticleDetailScreen(
     uiState: ArticleDetailUiState,
+    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
-    onReadFullArticleClick: (url: String) -> Unit,
+    onReadFullArticleClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -56,6 +60,7 @@ fun ArticleDetailScreen(
                 },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         val contentModifier = Modifier
             .padding(innerPadding)
@@ -75,7 +80,7 @@ fun ArticleDetailScreen(
 
             is ArticleDetailUiState.Content -> ArticleDetailContent(
                 article = uiState.article,
-                onReadFullArticleClick = { onReadFullArticleClick(uiState.article.url) },
+                onReadFullArticleClick = onReadFullArticleClick,
                 modifier = contentModifier,
             )
         }
@@ -137,6 +142,11 @@ private fun ArticleDetailScreenPreview(
     uiState: ArticleDetailUiState,
 ) {
     PreviewContainer(uiState, contentPadding = 0.dp) {
-        ArticleDetailScreen(uiState = it, onBackClick = {}, onReadFullArticleClick = {})
+        ArticleDetailScreen(
+            uiState = it,
+            snackbarHostState = remember { SnackbarHostState() },
+            onBackClick = {},
+            onReadFullArticleClick = {},
+        )
     }
 }

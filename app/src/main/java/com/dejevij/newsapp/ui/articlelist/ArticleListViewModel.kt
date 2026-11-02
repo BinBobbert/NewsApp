@@ -98,7 +98,7 @@ class ArticleListViewModel @Inject constructor(
     )
 
     fun onArticleClick(url: String) {
-        viewModelScope.launch { eventChannel.send(ArticleListEvent.OpenArticle(url)) }
+        viewModelScope.launch { eventChannel.send(ArticleListEvent.NavigateToArticle(url)) }
     }
 
     fun onRefresh() {

@@ -1,11 +1,12 @@
 package com.dejevij.newsapp.ui.articlelist
 
-import android.text.format.DateUtils
 import com.dejevij.newsapp.model.Article
+import com.dejevij.newsapp.ui.RelativeTimeFormatter
 import javax.inject.Inject
-import kotlin.time.Clock
 
-class ArticleViewDataMapper @Inject constructor(private val clock: Clock) {
+class ArticleViewDataMapper @Inject constructor(
+    private val relativeTimeFormatter: RelativeTimeFormatter,
+) {
 
     fun map(article: Article) = ArticleViewData(
         url = article.url,
@@ -13,10 +14,6 @@ class ArticleViewDataMapper @Inject constructor(private val clock: Clock) {
         sourceName = article.sourceName,
         description = article.description,
         imageUrl = article.imageUrl,
-        publishedAt = DateUtils.getRelativeTimeSpanString(
-            article.publishedAt.toEpochMilliseconds(),
-            clock.now().toEpochMilliseconds(),
-            DateUtils.MINUTE_IN_MILLIS,
-        ).toString(),
+        publishedAt = relativeTimeFormatter.format(article.publishedAt),
     )
 }

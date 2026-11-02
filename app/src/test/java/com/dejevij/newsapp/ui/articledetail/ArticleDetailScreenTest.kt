@@ -2,6 +2,8 @@ package com.dejevij.newsapp.ui.articledetail
 
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasProgressBarRangeInfo
@@ -62,7 +64,7 @@ class ArticleDetailScreenTest {
     }
 
     @Test
-    fun `read full article reports the article url`() {
+    fun `read full article reports a click`() {
         setContent(
             ArticleDetailUiState.Content(previewArticleDetail(url = "https://example.com/a")),
         )
@@ -71,7 +73,7 @@ class ArticleDetailScreenTest {
             .performScrollTo()
             .performClick()
 
-        assertEquals(listOf("open:https://example.com/a"), events)
+        assertEquals(listOf("open"), events)
     }
 
     @Test
@@ -109,8 +111,9 @@ class ArticleDetailScreenTest {
             NewsAppTheme {
                 ArticleDetailScreen(
                     uiState = uiState,
+                    snackbarHostState = remember { SnackbarHostState() },
                     onBackClick = { events += "back" },
-                    onReadFullArticleClick = { events += "open:$it" },
+                    onReadFullArticleClick = { events += "open" },
                 )
             }
         }
