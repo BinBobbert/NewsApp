@@ -31,6 +31,7 @@ class DataStoreCountryRepository @Inject constructor(
     }
 
     private companion object {
+
         val COUNTRY_KEY = stringPreferencesKey("country")
     }
 }
