@@ -10,6 +10,12 @@
     <string name="article_list_clear_filters">Clear filters</string>
     <string name="retry">Retry</string>
 
+    <string name="article_detail_back">Back</string>
+    <string name="article_detail_author">By %1$s</string>
+    <string name="article_detail_read_full_article">Read full article</string>
+    <string name="article_detail_not_available">This article is no longer available.</string>
+    <string name="article_detail_back_to_headlines">Back to headlines</string>
+
     <string name="category_filter_title">Categories</string>
     <string name="category_filter_clear">Clear</string>
     <string name="category_filter_apply">Apply</string>
