@@ -1,5 +1,7 @@
 package com.dejevij.newsapp.model
 
+import java.util.Locale
+
 @JvmInline
 value class Country private constructor(val code: String) {
 
@@ -15,6 +17,8 @@ value class Country private constructor(val code: String) {
         )
 
         val all: List<Country> = supportedCodes.map(::Country)
+
+        fun forLocale(locale: Locale): Country = fromCode(locale.country) ?: Default
 
         fun fromCode(code: String): Country? =
             code.lowercase().takeIf { it in supportedCodes }?.let(::Country)

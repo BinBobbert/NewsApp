@@ -39,7 +39,7 @@ class NewsApiTest {
     fun `getTopHeadlines sends api key header and query parameters`() = runTest {
         server.enqueue(MockResponse.Builder().body(readResource("top_headlines.json")).build())
 
-        api.getTopHeadlines(country = "us", pageSize = 20)
+        api.getTopHeadlines(country = "us", category = null, pageSize = 20, cacheControl = null)
 
         val request = server.takeRequest()
         assertEquals(API_KEY, request.headers[ApiKeyInterceptor.HEADER])
@@ -52,7 +52,12 @@ class NewsApiTest {
     fun `getTopHeadlines parses articles including nulls and unknown fields`() = runTest {
         server.enqueue(MockResponse.Builder().body(readResource("top_headlines.json")).build())
 
-        val response = api.getTopHeadlines(country = "us", pageSize = 20)
+        val response = api.getTopHeadlines(
+            country = "us",
+            category = null,
+            pageSize = 20,
+            cacheControl = null,
+        )
 
         assertEquals("ok", response.status)
         assertEquals(2, response.totalResults)
@@ -81,7 +86,7 @@ class NewsApiTest {
         )
 
         try {
-            api.getTopHeadlines(country = "us", pageSize = 20)
+            api.getTopHeadlines(country = "us", category = null, pageSize = 20, cacheControl = null)
             fail("Expected HttpException")
         } catch (e: HttpException) {
             assertEquals(401, e.code())

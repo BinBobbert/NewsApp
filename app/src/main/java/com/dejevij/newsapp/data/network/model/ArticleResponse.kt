@@ -13,6 +13,3 @@ data class ArticleResponse(
     val publishedAt: String,
     val content: String? = null,
 )
-
-@Serializable
-data class SourceResponse(val id: String? = null, val name: String)

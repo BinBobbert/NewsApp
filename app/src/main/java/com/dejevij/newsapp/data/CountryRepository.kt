@@ -6,4 +6,6 @@ import kotlinx.coroutines.flow.Flow
 interface CountryRepository {
 
     val country: Flow<Country>
+
+    suspend fun setCountry(country: Country)
 }
