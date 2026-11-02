@@ -2,6 +2,8 @@ package com.dejevij.newsapp.ui.articlelist
 
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -106,22 +108,6 @@ class ArticleListScreenTest {
     }
 
     @Test
-    fun `refresh error shows a snackbar that can retry`() {
-        setContent(
-            uiState(
-                ArticleListContent.Articles(listOf(previewArticle())),
-                refreshError = DataError.RateLimited,
-            ),
-        )
-
-        composeTestRule.onNodeWithText(string(R.string.error_rate_limited)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(string(R.string.retry)).performClick()
-        composeTestRule.waitForIdle()
-
-        assertEquals(listOf("retry", "errorDismiss"), events)
-    }
-
-    @Test
     fun `filter sheet applies the selected categories`() {
         setContent(uiState(ArticleListContent.Empty, selectedCategories = setOf(Category.SPORTS)))
 
@@ -164,13 +150,11 @@ class ArticleListScreenTest {
     private fun uiState(
         content: ArticleListContent,
         selectedCategories: Set<Category> = emptySet(),
-        refreshError: DataError? = null,
     ) = ArticleListUiState(
         content = content,
         country = unitedStates,
         countries = listOf(netherlands, unitedStates),
         selectedCategories = selectedCategories,
-        refreshError = refreshError,
     )
 
     private fun setContent(uiState: ArticleListUiState) {
@@ -178,12 +162,12 @@ class ArticleListScreenTest {
             NewsAppTheme {
                 ArticleListScreen(
                     uiState = uiState,
+                    snackbarHostState = remember { SnackbarHostState() },
                     onArticleClick = { clickedUrls += it },
                     onRefresh = { events += "refresh" },
                     onRetry = { events += "retry" },
                     onCategoriesApply = { appliedCategories += it },
                     onCountrySelect = { selectedCountries += it },
-                    onRefreshErrorDismiss = { events += "errorDismiss" },
                 )
             }
         }
