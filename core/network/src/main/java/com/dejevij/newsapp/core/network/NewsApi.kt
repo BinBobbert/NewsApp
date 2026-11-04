@@ -2,7 +2,6 @@ package com.dejevij.newsapp.core.network
 
 import com.dejevij.newsapp.core.network.model.TopHeadlinesResponse
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.Query
 
 interface NewsApi {
@@ -12,6 +11,5 @@ interface NewsApi {
         @Query("country") country: String,
         @Query("category") category: String?,
         @Query("pageSize") pageSize: Int,
-        @Header("Cache-Control") cacheControl: String?,
     ): TopHeadlinesResponse
 }

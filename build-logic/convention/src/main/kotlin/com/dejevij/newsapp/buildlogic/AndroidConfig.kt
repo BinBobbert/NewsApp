@@ -18,6 +18,10 @@ internal fun CommonExtension.configureAndroidDefaults() {
         minSdk = AndroidConfig.MIN_SDK
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    testOptions.unitTests.all { test ->
+        // Robolectric's API 36+ runtime reads JDK internals that Java modules hide by default.
+        test.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
+    }
     compileOptions.apply {
         sourceCompatibility = AndroidConfig.javaVersion
         targetCompatibility = AndroidConfig.javaVersion

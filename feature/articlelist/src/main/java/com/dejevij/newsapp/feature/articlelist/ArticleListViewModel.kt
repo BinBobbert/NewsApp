@@ -8,6 +8,7 @@ import com.dejevij.newsapp.core.data.ArticleRepository
 import com.dejevij.newsapp.core.data.CountryRepository
 import com.dejevij.newsapp.core.data.DataError
 import com.dejevij.newsapp.core.data.RefreshResult
+import com.dejevij.newsapp.core.model.Article
 import com.dejevij.newsapp.core.model.Category
 import com.dejevij.newsapp.core.model.Country
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -48,58 +50,40 @@ class ArticleListViewModel @Inject constructor(
         .getStateFlow(CATEGORIES_KEY, emptyList<String>())
         .map { names -> names.map(Category::valueOf).toSet() }
 
-    // Starts a full load whenever collection starts or the filters change, and a refresh for
-    // every refresh request. The *Latest operators cancel a load that a newer one replaces.
+    // Everything below depends on the filters, so a filter change switches the whole pipeline
+    // and stored articles of the previous filters are never shown with the new ones.
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val loadState: Flow<ArticleListLoadState> =
+    val uiState: StateFlow<ArticleListUiState> =
         combine(countryRepository.country, selectedCategories, ::Pair)
             .distinctUntilChanged()
             .flatMapLatest { (country, categories) ->
-                refreshRequests
-                    .onStart { emit(ArticleListLoadState.Loading) }
-                    .transformLatest { mode ->
-                        emit(mode)
-                        emit(loadArticles(country, categories, mode))
-                    }
+                combine(
+                    articleRepository.topHeadlines(country, categories),
+                    loadStates(country, categories),
+                    refreshError,
+                ) { articles, load, error ->
+                    ArticleListUiState(
+                        content = content(articles, load),
+                        country = countries.first { it.country == country },
+                        countries = countries,
+                        selectedCategories = categories,
+                        isRefreshing = load == ArticleListLoadState.Refreshing,
+                        refreshError = error,
+                    )
+                }
             }
-
-    val uiState: StateFlow<ArticleListUiState> = combine(
-        articleRepository.topHeadlines,
-        countryRepository.country,
-        selectedCategories,
-        loadState,
-        refreshError,
-    ) { articles, country, categories, load, error ->
-        ArticleListUiState(
-            content = when (load) {
-                ArticleListLoadState.Loading -> ArticleListContent.Loading
-
-                is ArticleListLoadState.Failed -> ArticleListContent.Error(load.error)
-
-                ArticleListLoadState.Idle, ArticleListLoadState.Refreshing ->
-                    if (articles.isEmpty()) {
-                        ArticleListContent.Empty
-                    } else {
-                        ArticleListContent.Articles(articles.map(articleMapper::map))
-                    }
-            },
-            country = countries.first { it.country == country },
-            countries = countries,
-            selectedCategories = categories,
-            isRefreshing = load == ArticleListLoadState.Refreshing,
-            refreshError = error,
-        )
-    }.flowOn(defaultDispatcher).stateIn(
-        scope = viewModelScope,
-        // Lazily rather than WhileSubscribed: restarting this pipeline starts a new full load,
-        // which would reset the list and its scroll position whenever the screen returns.
-        started = SharingStarted.Lazily,
-        initialValue = ArticleListUiState(
-            content = ArticleListContent.Loading,
-            country = countries.first { it.country == Country.forLocale(Locale.getDefault()) },
-            countries = countries,
-        ),
-    )
+            .flowOn(defaultDispatcher)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+                initialValue = ArticleListUiState(
+                    content = ArticleListContent.Loading,
+                    country = countries.first {
+                        it.country == Country.forLocale(Locale.getDefault())
+                    },
+                    countries = countries,
+                ),
+            )
 
     fun onRefresh() {
         refreshRequests.tryEmit(ArticleListLoadState.Refreshing)
@@ -124,6 +108,24 @@ class ArticleListViewModel @Inject constructor(
         viewModelScope.launch { countryRepository.setCountry(country) }
     }
 
+    // Starts a load when collection starts, and a refresh for every refresh request.
+    // transformLatest cancels a load that a newer request replaces.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun loadStates(country: Country, categories: Set<Category>) = refreshRequests
+        .onStart { emit(ArticleListLoadState.Loading) }
+        .transformLatest { mode ->
+            emit(mode)
+            emit(loadArticles(country, categories, mode))
+        }
+
+    // Stored articles are shown whenever there are any, also while loading or after a failed load.
+    private fun content(articles: List<Article>, load: ArticleListLoadState) = when {
+        articles.isNotEmpty() -> ArticleListContent.Articles(articles.map(articleMapper::map))
+        load == ArticleListLoadState.Loading -> ArticleListContent.Loading
+        load is ArticleListLoadState.Failed -> ArticleListContent.Error(load.error)
+        else -> ArticleListContent.Empty
+    }
+
     private suspend fun loadArticles(
         country: Country,
         categories: Set<Category>,
@@ -137,7 +139,10 @@ class ArticleListViewModel @Inject constructor(
     ) {
         RefreshResult.Success -> ArticleListLoadState.Idle
 
-        is RefreshResult.Failure -> if (mode == ArticleListLoadState.Refreshing) {
+        is RefreshResult.Failure -> if (
+            mode == ArticleListLoadState.Refreshing ||
+            articleRepository.topHeadlines(country, categories).first().isNotEmpty()
+        ) {
             refreshError.value = result.error
             ArticleListLoadState.Idle
         } else {
@@ -148,5 +153,6 @@ class ArticleListViewModel @Inject constructor(
     private companion object {
 
         const val CATEGORIES_KEY = "categories"
+        const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 }

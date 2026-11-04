@@ -43,6 +43,7 @@ dependencies {
 
     kover(projects.core.common)
     kover(projects.core.data)
+    kover(projects.core.database)
     kover(projects.core.designsystem)
     kover(projects.core.model)
     kover(projects.core.network)

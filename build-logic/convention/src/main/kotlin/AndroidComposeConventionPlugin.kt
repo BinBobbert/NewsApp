@@ -14,10 +14,6 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
         extensions.getByType<CommonExtension>().apply {
             buildFeatures.compose = true
             testOptions.unitTests.isIncludeAndroidResources = true
-            testOptions.unitTests.all { test ->
-                // Robolectric's API 36+ runtime reads JDK internals that Java modules hide by default.
-                test.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
-            }
         }
 
         dependencies {
