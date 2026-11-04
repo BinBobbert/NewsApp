@@ -6,20 +6,14 @@ import com.dejevij.newsapp.core.network.model.SourceResponse
 import kotlinx.coroutines.test.runTest
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import okhttp3.Cache
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import retrofit2.HttpException
 
 class NewsApiTest {
-
-    @get:Rule
-    val temporaryFolder = TemporaryFolder()
 
     private val server = MockWebServer()
     private lateinit var api: NewsApi
@@ -30,8 +24,6 @@ class NewsApiTest {
         val okHttpClient = NetworkModule.provideNewsApiOkHttpClient(
             okHttpClient = NetworkModule.provideOkHttpClient(),
             apiKeyInterceptor = ApiKeyInterceptor(API_KEY),
-            responseCacheInterceptor = ResponseCacheInterceptor(),
-            cache = Cache(temporaryFolder.newFolder("http-cache"), CACHE_MAX_BYTES),
             debugInterceptors = emptySet(),
         )
         val retrofit = NetworkModule.provideRetrofit(
@@ -51,7 +43,7 @@ class NewsApiTest {
     fun `getTopHeadlines sends api key header and query parameters`() = runTest {
         server.enqueue(MockResponse.Builder().body(readResource("top_headlines.json")).build())
 
-        api.getTopHeadlines(country = "us", category = null, pageSize = 20, cacheControl = null)
+        api.getTopHeadlines(country = "us", category = null, pageSize = 20)
 
         val request = server.takeRequest()
         assertEquals(API_KEY, request.headers[ApiKeyInterceptor.HEADER])
@@ -68,7 +60,6 @@ class NewsApiTest {
             country = "us",
             category = null,
             pageSize = 20,
-            cacheControl = null,
         )
 
         assertEquals("ok", response.status)
@@ -98,70 +89,12 @@ class NewsApiTest {
         )
 
         try {
-            api.getTopHeadlines(country = "us", category = null, pageSize = 20, cacheControl = null)
+            api.getTopHeadlines(country = "us", category = null, pageSize = 20)
             fail("Expected HttpException")
         } catch (e: HttpException) {
             assertEquals(401, e.code())
         }
     }
-
-    @Test
-    fun `a repeated request is answered from the cache despite no-cache from the server`() =
-        runTest {
-            server.enqueue(headlinesResponse())
-
-            topHeadlines()
-            topHeadlines()
-
-            assertEquals(1, server.requestCount)
-        }
-
-    @Test
-    fun `a no-cache request bypasses the cache`() = runTest {
-        server.enqueue(headlinesResponse())
-        server.enqueue(headlinesResponse())
-
-        topHeadlines()
-        topHeadlines(cacheControl = "no-cache")
-
-        assertEquals(2, server.requestCount)
-    }
-
-    @Test
-    fun `different categories are cached separately`() = runTest {
-        server.enqueue(headlinesResponse())
-        server.enqueue(headlinesResponse())
-
-        topHeadlines(category = "sports")
-        topHeadlines(category = "technology")
-        topHeadlines(category = "sports")
-
-        assertEquals(2, server.requestCount)
-    }
-
-    @Test
-    fun `error responses are not cached`() = runTest {
-        server.enqueue(MockResponse.Builder().code(500).build())
-        server.enqueue(headlinesResponse())
-
-        runCatching { topHeadlines() }
-        topHeadlines()
-
-        assertEquals(2, server.requestCount)
-    }
-
-    private suspend fun topHeadlines(category: String? = null, cacheControl: String? = null) =
-        api.getTopHeadlines(
-            country = "us",
-            category = category,
-            pageSize = 20,
-            cacheControl = cacheControl,
-        )
-
-    private fun headlinesResponse() = MockResponse.Builder()
-        .body(readResource("top_headlines.json"))
-        .addHeader("Cache-Control", "no-cache")
-        .build()
 
     private fun readResource(name: String): String =
         requireNotNull(javaClass.classLoader?.getResource(name)).readText()
@@ -169,6 +102,5 @@ class NewsApiTest {
     private companion object {
 
         const val API_KEY = "test-api-key"
-        const val CACHE_MAX_BYTES = 1024L * 1024
     }
 }

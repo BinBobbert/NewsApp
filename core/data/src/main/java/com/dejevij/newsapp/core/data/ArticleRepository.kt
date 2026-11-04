@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface ArticleRepository {
 
-    val topHeadlines: Flow<List<Article>>
+    fun topHeadlines(country: Country, categories: Set<Category>): Flow<List<Article>>
 
     fun observeArticle(url: String): Flow<Article?>
 

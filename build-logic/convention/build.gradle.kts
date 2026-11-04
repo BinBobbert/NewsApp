@@ -9,6 +9,7 @@ dependencies {
     compileOnly(libs.ktlint.gradlePlugin)
     compileOnly(libs.detekt.gradlePlugin)
     compileOnly(libs.kover.gradlePlugin)
+    compileOnly(libs.room.gradlePlugin)
 }
 
 gradlePlugin {
@@ -28,6 +29,10 @@ gradlePlugin {
         register("androidFeature") {
             id = libs.plugins.newsapp.android.feature.get().pluginId
             implementationClass = "AndroidFeatureConventionPlugin"
+        }
+        register("androidRoom") {
+            id = libs.plugins.newsapp.android.room.get().pluginId
+            implementationClass = "AndroidRoomConventionPlugin"
         }
         register("hilt") {
             id = libs.plugins.newsapp.hilt.get().pluginId

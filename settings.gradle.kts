@@ -29,6 +29,7 @@ rootProject.name = "NewsApp"
 include(":app")
 include(":core:common")
 include(":core:data")
+include(":core:database")
 include(":core:designsystem")
 include(":core:model")
 include(":core:network")

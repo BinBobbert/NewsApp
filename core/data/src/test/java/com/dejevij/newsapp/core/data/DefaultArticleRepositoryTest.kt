@@ -1,5 +1,10 @@
 package com.dejevij.newsapp.core.data
 
+import android.content.Context
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.dejevij.newsapp.core.database.NewsDatabase
 import com.dejevij.newsapp.core.model.Category
 import com.dejevij.newsapp.core.model.Country
 import com.dejevij.newsapp.core.network.NewsApi
@@ -7,20 +12,39 @@ import com.dejevij.newsapp.core.network.model.ArticleResponse
 import com.dejevij.newsapp.core.network.model.TopHeadlinesResponse
 import com.dejevij.newsapp.core.testing.articleResponse
 import java.io.IOException
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
 import okhttp3.ResponseBody.Companion.toResponseBody
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
 import retrofit2.HttpException
 import retrofit2.Response
 
+@RunWith(AndroidJUnit4::class)
 class DefaultArticleRepositoryTest {
 
+    private val database = Room.inMemoryDatabaseBuilder(
+        ApplicationProvider.getApplicationContext<Context>(),
+        NewsDatabase::class.java,
+    ).allowMainThreadQueries().build()
     private val newsApi = FakeNewsApi()
-    private val repository = DefaultArticleRepository(newsApi)
+    private var now = Instant.parse("2026-11-01T12:00:00Z")
+    private val clock = object : Clock {
+        override fun now() = now
+    }
+    private val repository = DefaultArticleRepository(newsApi, database.headlineDao(), clock)
+
+    @After
+    fun tearDown() {
+        database.close()
+    }
 
     @Test
     fun `refresh stores mapped articles`() = runTest {
@@ -33,7 +57,7 @@ class DefaultArticleRepositoryTest {
         )
 
         assertEquals(RefreshResult.Success, result)
-        assertEquals(listOf("a", "b"), repository.topHeadlines.first().map { it.url })
+        assertEquals(listOf("a", "b"), storedHeadlines().map { it.url })
     }
 
     @Test
@@ -61,7 +85,7 @@ class DefaultArticleRepositoryTest {
 
         repository.refreshTopHeadlines(Country.Default, emptySet(), forceRefresh = false)
 
-        val articles = repository.topHeadlines.first()
+        val articles = storedHeadlines()
         assertEquals(listOf("a", "b"), articles.map { it.url })
         assertEquals("First", articles.first().title)
     }
@@ -99,7 +123,10 @@ class DefaultArticleRepositoryTest {
 
         assertEquals(RefreshResult.Success, result)
         assertEquals(setOf("sports", "technology"), newsApi.requestedCategories.toSet())
-        assertEquals(listOf("new", "shared", "old"), repository.topHeadlines.first().map { it.url })
+        assertEquals(
+            listOf("new", "shared", "old"),
+            storedHeadlines(Category.SPORTS, Category.TECHNOLOGY).map { it.url },
+        )
     }
 
     @Test
@@ -117,17 +144,78 @@ class DefaultArticleRepositoryTest {
         )
 
         assertEquals(RefreshResult.Failure(DataError.NoConnection), result)
-        assertEquals(listOf("a"), repository.topHeadlines.first().map { it.url })
+        assertEquals(listOf("a"), storedHeadlines().map { it.url })
     }
 
     @Test
-    fun `only a forced refresh bypasses the http cache`() = runTest {
-        newsApi.response = { headlines() }
+    fun `refresh skips the network while the stored headlines are fresh`() = runTest {
+        newsApi.response = { headlines(articleResponse(url = "a")) }
+        repository.refreshTopHeadlines(Country.Default, emptySet(), forceRefresh = false)
+        now += 29.minutes
+
+        val result = repository.refreshTopHeadlines(
+            Country.Default,
+            emptySet(),
+            forceRefresh = false,
+        )
+
+        assertEquals(RefreshResult.Success, result)
+        assertEquals(1, newsApi.requestedCategories.size)
+    }
+
+    @Test
+    fun `refresh fetches again once the stored headlines are stale`() = runTest {
+        newsApi.response = { headlines(articleResponse(url = "a")) }
+        repository.refreshTopHeadlines(Country.Default, emptySet(), forceRefresh = false)
+        now += 30.minutes
 
         repository.refreshTopHeadlines(Country.Default, emptySet(), forceRefresh = false)
+
+        assertEquals(2, newsApi.requestedCategories.size)
+    }
+
+    @Test
+    fun `a forced refresh fetches even when the stored headlines are fresh`() = runTest {
+        newsApi.response = { headlines(articleResponse(url = "a")) }
+        repository.refreshTopHeadlines(Country.Default, emptySet(), forceRefresh = false)
+
         repository.refreshTopHeadlines(Country.Default, emptySet(), forceRefresh = true)
 
-        assertEquals(listOf(null, "no-cache"), newsApi.requestedCacheControls)
+        assertEquals(2, newsApi.requestedCategories.size)
+    }
+
+    @Test
+    fun `refresh only fetches the categories that are stale`() = runTest {
+        newsApi.response = { headlines(articleResponse(url = "a")) }
+        repository.refreshTopHeadlines(
+            Country.Default,
+            setOf(Category.SPORTS),
+            forceRefresh = false,
+        )
+        newsApi.requestedCategories.clear()
+
+        repository.refreshTopHeadlines(
+            Country.Default,
+            setOf(Category.SPORTS, Category.HEALTH),
+            forceRefresh = false,
+        )
+
+        assertEquals(listOf("health"), newsApi.requestedCategories)
+    }
+
+    @Test
+    fun `headlines are stored per country`() = runTest {
+        val gb = requireNotNull(Country.fromCode("gb"))
+        newsApi.response = { headlines(articleResponse(url = "us")) }
+        repository.refreshTopHeadlines(Country.Default, emptySet(), forceRefresh = false)
+        newsApi.response = { headlines(articleResponse(url = "gb")) }
+        repository.refreshTopHeadlines(gb, emptySet(), forceRefresh = false)
+
+        assertEquals(listOf("us"), storedHeadlines().map { it.url })
+        assertEquals(
+            listOf("gb"),
+            repository.topHeadlines(gb, emptySet()).first().map { it.url },
+        )
     }
 
     @Test
@@ -138,7 +226,7 @@ class DefaultArticleRepositoryTest {
 
         repository.refreshTopHeadlines(Country.Default, emptySet(), forceRefresh = false)
 
-        assertEquals(listOf("a"), repository.topHeadlines.first().map { it.url })
+        assertEquals(listOf("a"), storedHeadlines().map { it.url })
     }
 
     @Test
@@ -150,11 +238,11 @@ class DefaultArticleRepositoryTest {
         val result = repository.refreshTopHeadlines(
             Country.Default,
             emptySet(),
-            forceRefresh = false,
+            forceRefresh = true,
         )
 
         assertEquals(RefreshResult.Failure(DataError.NoConnection), result)
-        assertEquals(listOf("a"), repository.topHeadlines.first().map { it.url })
+        assertEquals(listOf("a"), storedHeadlines().map { it.url })
     }
 
     @Test
@@ -196,6 +284,9 @@ class DefaultArticleRepositoryTest {
         assertNull(repository.observeArticle("missing").first())
     }
 
+    private suspend fun storedHeadlines(vararg categories: Category) =
+        repository.topHeadlines(Country.Default, categories.toSet()).first()
+
     private fun headlines(vararg articles: ArticleResponse) = TopHeadlinesResponse(
         status = "ok",
         totalResults = articles.size,
@@ -209,17 +300,14 @@ class DefaultArticleRepositoryTest {
         var response: (category: String?) -> TopHeadlinesResponse = { error("No response set") }
         var requestedCountry: String? = null
         val requestedCategories = mutableListOf<String?>()
-        val requestedCacheControls = mutableListOf<String?>()
 
         override suspend fun getTopHeadlines(
             country: String,
             category: String?,
             pageSize: Int,
-            cacheControl: String?,
         ): TopHeadlinesResponse {
             requestedCountry = country
             requestedCategories += category
-            requestedCacheControls += cacheControl
             return response(category)
         }
     }

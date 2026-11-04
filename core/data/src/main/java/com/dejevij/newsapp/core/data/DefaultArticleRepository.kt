@@ -1,5 +1,9 @@
 package com.dejevij.newsapp.core.data
 
+import com.dejevij.newsapp.core.database.dao.HeadlineDao
+import com.dejevij.newsapp.core.database.model.ArticleEntity
+import com.dejevij.newsapp.core.database.model.toArticle
+import com.dejevij.newsapp.core.database.model.toEntity
 import com.dejevij.newsapp.core.model.Article
 import com.dejevij.newsapp.core.model.Category
 import com.dejevij.newsapp.core.model.Country
@@ -7,29 +11,31 @@ import com.dejevij.newsapp.core.network.NewsApi
 import com.dejevij.newsapp.core.network.model.toArticleOrNull
 import java.io.IOException
 import javax.inject.Inject
-import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerializationException
-import okhttp3.CacheControl
 import retrofit2.HttpException
 
-@Singleton
-class DefaultArticleRepository @Inject constructor(private val newsApi: NewsApi) :
-    ArticleRepository {
+class DefaultArticleRepository @Inject constructor(
+    private val newsApi: NewsApi,
+    private val headlineDao: HeadlineDao,
+    private val clock: Clock,
+) : ArticleRepository {
 
-    private val cache = MutableStateFlow<List<Article>>(emptyList())
+    override fun topHeadlines(country: Country, categories: Set<Category>): Flow<List<Article>> =
+        headlineDao.observeHeadlines(country.code, categories.toKeys())
+            .map { articles -> articles.map(ArticleEntity::toArticle) }
+            .distinctUntilChanged()
 
-    override val topHeadlines: Flow<List<Article>> = cache.asStateFlow()
-
-    override fun observeArticle(url: String): Flow<Article?> = cache
-        .map { articles -> articles.firstOrNull { it.url == url } }
+    override fun observeArticle(url: String): Flow<Article?> = headlineDao.observeArticle(url)
+        .map { it?.toArticle() }
         .distinctUntilChanged()
 
     // Only specific exceptions are caught: a catch-all would also swallow
@@ -39,11 +45,16 @@ class DefaultArticleRepository @Inject constructor(private val newsApi: NewsApi)
         categories: Set<Category>,
         forceRefresh: Boolean,
     ): RefreshResult = try {
-        val cacheControl = if (forceRefresh) CacheControl.FORCE_NETWORK.toString() else null
-        cache.value = fetchTopHeadlines(country, categories, cacheControl)
-            .mapNotNull { it.toArticleOrNull() }
-            .distinctBy { it.url }
-            .sortedByDescending { it.publishedAt }
+        val now = clock.now()
+        val keys = categories.toKeys()
+        val staleKeys = if (forceRefresh) keys else staleKeys(country, keys, now)
+        if (staleKeys.isNotEmpty()) {
+            headlineDao.replaceHeadlines(
+                country = country.code,
+                headlines = fetchTopHeadlines(country, staleKeys),
+                fetchedAt = now.toEpochMilliseconds(),
+            )
+        }
         RefreshResult.Success
     } catch (e: HttpException) {
         RefreshResult.Failure(e.toDataError())
@@ -53,32 +64,37 @@ class DefaultArticleRepository @Inject constructor(private val newsApi: NewsApi)
         RefreshResult.Failure(DataError.Unknown)
     }
 
-    // NewsAPI accepts a single category per request, so multiple categories are fetched in
-    // parallel. If any request fails, the whole refresh fails and the cache keeps its articles.
-    private suspend fun fetchTopHeadlines(
+    private suspend fun staleKeys(
         country: Country,
-        categories: Set<Category>,
-        cacheControl: String?,
-    ) = if (categories.isEmpty()) {
-        fetchTopHeadlines(country, category = null, cacheControl)
-    } else {
-        coroutineScope {
-            categories.map { category ->
-                async { fetchTopHeadlines(country, category.apiValue, cacheControl) }
-            }.awaitAll().flatten()
-        }
+        keys: List<String>,
+        now: Instant,
+    ): List<String> {
+        val fetchedAt = headlineDao.getQueries(country.code, keys)
+            .associate { it.category to Instant.fromEpochMilliseconds(it.fetchedAt) }
+        return keys.filter { key -> fetchedAt[key]?.let { now - it >= MAX_AGE } ?: true }
     }
 
+    // NewsAPI accepts a single category per request, so categories are fetched in parallel.
+    // If any request fails, nothing is written and the database keeps its articles.
     private suspend fun fetchTopHeadlines(
         country: Country,
-        category: String?,
-        cacheControl: String?,
-    ) = newsApi.getTopHeadlines(
-        country = country.code,
-        category = category,
-        pageSize = PAGE_SIZE,
-        cacheControl = cacheControl,
-    ).articles
+        keys: List<String>,
+    ): Map<String, List<ArticleEntity>> = coroutineScope {
+        keys.map { key ->
+            async {
+                key to newsApi.getTopHeadlines(
+                    country = country.code,
+                    category = key.takeUnless { it == ALL_CATEGORIES },
+                    pageSize = PAGE_SIZE,
+                ).articles
+                    .mapNotNull { it.toArticleOrNull()?.toEntity() }
+                    .distinctBy { it.url }
+            }
+        }.awaitAll().toMap()
+    }
+
+    private fun Set<Category>.toKeys(): List<String> =
+        map { it.apiValue }.ifEmpty { listOf(ALL_CATEGORIES) }
 
     private fun HttpException.toDataError(): DataError = when (code()) {
         HTTP_UNAUTHORIZED -> DataError.Unauthorized
@@ -88,8 +104,10 @@ class DefaultArticleRepository @Inject constructor(private val newsApi: NewsApi)
 
     private companion object {
 
+        const val ALL_CATEGORIES = "all"
         const val PAGE_SIZE = 50
         const val HTTP_UNAUTHORIZED = 401
         const val HTTP_TOO_MANY_REQUESTS = 429
+        val MAX_AGE = 30.minutes
     }
 }

@@ -13,6 +13,7 @@ import com.dejevij.newsapp.core.testing.FixedClock
 import com.dejevij.newsapp.core.testing.MainDispatcherRule
 import com.dejevij.newsapp.core.ui.RelativeTimeFormatter
 import kotlin.time.Instant
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -48,7 +49,7 @@ class ArticleListViewModelTest {
     }
 
     @Test
-    fun `does not reload when the screen stops and starts collecting again`() = runTest {
+    fun `keeps showing articles and does not force a refresh when collection restarts`() = runTest {
         articleRepository.nextArticles = listOf(article("a"))
         val viewModel = viewModel()
         val firstCollection = collectUiState(viewModel)
@@ -57,11 +58,35 @@ class ArticleListViewModelTest {
         advanceTimeBy(60_000)
         collectUiState(viewModel)
 
-        assertEquals(1, articleRepository.requests.size)
+        assertEquals(listOf(false, false), articleRepository.forceRefreshes)
         assertEquals(
             1,
             (viewModel.uiState.value.content as ArticleListContent.Articles).articles.size,
         )
+    }
+
+    @Test
+    fun `shows stored articles while the first load is running`() = runTest {
+        articleRepository.setCachedArticles(listOf(article("a")))
+        articleRepository.refreshGate = CompletableDeferred()
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        val content = viewModel.uiState.value.content as ArticleListContent.Articles
+        assertEquals(listOf("a"), content.articles.map { it.url })
+        assertFalse(viewModel.uiState.value.isRefreshing)
+    }
+
+    @Test
+    fun `a failed first load with stored articles shows them and a refresh error`() = runTest {
+        articleRepository.setCachedArticles(listOf(article("a")))
+        articleRepository.nextResult = RefreshResult.Failure(DataError.NoConnection)
+        val viewModel = viewModel()
+        collectUiState(viewModel)
+
+        val content = viewModel.uiState.value.content as ArticleListContent.Articles
+        assertEquals(listOf("a"), content.articles.map { it.url })
+        assertEquals(DataError.NoConnection, viewModel.uiState.value.refreshError)
     }
 
     @Test

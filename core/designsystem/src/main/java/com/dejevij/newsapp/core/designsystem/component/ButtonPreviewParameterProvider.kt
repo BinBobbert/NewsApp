@@ -9,4 +9,7 @@ internal class ButtonPreviewParameterProvider : PreviewParameterProvider<ButtonP
     )
 }
 
-internal data class ButtonPreviewState(val text: String, val enabled: Boolean)
+internal data class ButtonPreviewState(
+    val text: String,
+    val enabled: Boolean,
+)
