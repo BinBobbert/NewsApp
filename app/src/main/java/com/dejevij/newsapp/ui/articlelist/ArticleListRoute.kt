@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dejevij.newsapp.R
@@ -19,25 +18,18 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ArticleListRoute(
+    onNavigateToArticle: (url: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ArticleListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val uriHandler = LocalUriHandler.current
     val resources = LocalResources.current
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
-            is ArticleListEvent.OpenArticle -> try {
-                uriHandler.openUri(event.url)
-            } catch (_: IllegalArgumentException) {
-                // AndroidUriHandler reports a missing browser as IllegalArgumentException.
-                scope.launch {
-                    snackbarHostState.showSnackbar(resources.getString(R.string.error_no_browser))
-                }
-            }
+            is ArticleListEvent.NavigateToArticle -> onNavigateToArticle(event.url)
 
             is ArticleListEvent.ShowRefreshError -> scope.launch {
                 val result = snackbarHostState.showSnackbar(

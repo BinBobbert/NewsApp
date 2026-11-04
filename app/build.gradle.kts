@@ -25,6 +25,7 @@ android {
         applicationId = "com.dejevij.newsapp"
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "com.dejevij.newsapp.HiltTestRunner"
 
         buildConfigField("String", "NEWS_API_KEY", "\"$newsApiKey\"")
         buildConfigField("String", "NEWS_API_BASE_URL", "\"https://newsapi.org/\"")
@@ -40,6 +41,10 @@ android {
     }
     buildFeatures {
         buildConfig = true
+    }
+    sourceSets {
+        named("test") { kotlin.directories.add("src/sharedTest/java") }
+        named("androidTest") { kotlin.directories.add("src/sharedTest/java") }
     }
 }
 
@@ -64,6 +69,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.androidx.browser)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit)
@@ -84,4 +93,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.intents)
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
 }

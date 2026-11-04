@@ -3,6 +3,7 @@ package com.dejevij.newsapp.ui.articlelist
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.dejevij.newsapp.model.Article
 import com.dejevij.newsapp.testing.FixedClock
+import com.dejevij.newsapp.ui.RelativeTimeFormatter
 import kotlin.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -12,7 +13,7 @@ import org.junit.runner.RunWith
 class ArticleViewDataMapperTest {
 
     private val now = Instant.parse("2026-11-01T12:00:00Z")
-    private val mapper = ArticleViewDataMapper(FixedClock(now))
+    private val mapper = ArticleViewDataMapper(RelativeTimeFormatter(FixedClock(now)))
 
     @Test
     fun `maps display fields`() {

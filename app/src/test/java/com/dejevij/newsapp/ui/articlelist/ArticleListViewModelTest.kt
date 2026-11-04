@@ -12,6 +12,7 @@ import com.dejevij.newsapp.testing.FakeArticleRepository
 import com.dejevij.newsapp.testing.FakeCountryRepository
 import com.dejevij.newsapp.testing.FixedClock
 import com.dejevij.newsapp.testing.MainDispatcherRule
+import com.dejevij.newsapp.ui.RelativeTimeFormatter
 import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -144,13 +145,13 @@ class ArticleListViewModelTest {
     }
 
     @Test
-    fun `clicking an article sends an open article event`() = runTest {
+    fun `clicking an article sends a navigate event`() = runTest {
         val viewModel = viewModel()
 
         viewModel.events.test {
             viewModel.onArticleClick("https://example.com/a")
 
-            assertEquals(ArticleListEvent.OpenArticle("https://example.com/a"), awaitItem())
+            assertEquals(ArticleListEvent.NavigateToArticle("https://example.com/a"), awaitItem())
         }
     }
 
@@ -159,7 +160,7 @@ class ArticleListViewModelTest {
             articleRepository = articleRepository,
             countryRepository = countryRepository,
             articleMapper = ArticleViewDataMapper(
-                FixedClock(Instant.parse("2026-11-01T12:00:00Z")),
+                RelativeTimeFormatter(FixedClock(Instant.parse("2026-11-01T12:00:00Z"))),
             ),
             countryMapper = CountryViewDataMapper(),
             savedStateHandle = savedStateHandle,
