@@ -12,7 +12,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dejevij.newsapp.core.ui.util.ObserveAsEvents
 import com.dejevij.newsapp.core.ui.util.openInCustomTab
 import kotlinx.coroutines.launch
 
@@ -35,26 +34,17 @@ fun ArticleDetailRoute(
     val resources = LocalResources.current
     val toolbarColor = MaterialTheme.colorScheme.surface.toArgb()
 
-    ObserveAsEvents(viewModel.events) { event ->
-        when (event) {
-            is ArticleDetailEvent.OpenArticle ->
-                if (!context.openInCustomTab(event.url, toolbarColor)) {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            resources.getString(R.string.error_no_browser),
-                        )
-                    }
-                }
-
-            ArticleDetailEvent.NavigateBack -> onNavigateBack()
-        }
-    }
-
     ArticleDetailScreen(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
-        onBackClick = viewModel::onBackClick,
-        onReadFullArticleClick = viewModel::onReadFullArticleClick,
+        onBackClick = onNavigateBack,
+        onReadFullArticleClick = {
+            if (!context.openInCustomTab(url, toolbarColor)) {
+                scope.launch {
+                    snackbarHostState.showSnackbar(resources.getString(R.string.error_no_browser))
+                }
+            }
+        },
         modifier = modifier,
     )
 }

@@ -2,7 +2,6 @@ package com.dejevij.newsapp.feature.articlelist
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
 import com.dejevij.newsapp.core.data.DataError
 import com.dejevij.newsapp.core.data.RefreshResult
 import com.dejevij.newsapp.core.model.Article
@@ -23,6 +22,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -94,17 +94,15 @@ class ArticleListViewModelTest {
     }
 
     @Test
-    fun `failed pull to refresh keeps the articles and sends an error event`() = runTest {
+    fun `failed pull to refresh keeps the articles and exposes the refresh error`() = runTest {
         articleRepository.nextArticles = listOf(article("a"))
         val viewModel = viewModel()
         collectUiState(viewModel)
 
-        viewModel.events.test {
-            articleRepository.nextResult = RefreshResult.Failure(DataError.RateLimited)
-            viewModel.onRefresh()
+        articleRepository.nextResult = RefreshResult.Failure(DataError.RateLimited)
+        viewModel.onRefresh()
 
-            assertEquals(ArticleListEvent.ShowRefreshError(DataError.RateLimited), awaitItem())
-        }
+        assertEquals(DataError.RateLimited, viewModel.uiState.value.refreshError)
         assertEquals(listOf(false, true), articleRepository.forceRefreshes)
         assertEquals(
             1,
@@ -145,14 +143,16 @@ class ArticleListViewModelTest {
     }
 
     @Test
-    fun `clicking an article sends a navigate event`() = runTest {
+    fun `refresh error is cleared once shown`() = runTest {
+        articleRepository.nextArticles = listOf(article("a"))
         val viewModel = viewModel()
+        collectUiState(viewModel)
+        articleRepository.nextResult = RefreshResult.Failure(DataError.RateLimited)
+        viewModel.onRefresh()
 
-        viewModel.events.test {
-            viewModel.onArticleClick("https://example.com/a")
+        viewModel.onRefreshErrorShown()
 
-            assertEquals(ArticleListEvent.NavigateToArticle("https://example.com/a"), awaitItem())
-        }
+        assertNull(viewModel.uiState.value.refreshError)
     }
 
     private fun viewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
