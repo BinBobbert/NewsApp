@@ -113,7 +113,13 @@ The free plan allows 100 requests per day. NewsAPI accepts only one category per
 
 - Stored headlines are reused for 30 minutes before the app fetches them again.
 - Only categories with stale or missing headlines are fetched; categories that are still fresh are served from the database.
-- Each request asks for up to 50 articles, so one request per category is normally enough.
+- Each request asks for 100 articles, the most NewsAPI allows per page, so one request per category is normally enough.
+
+### No paging
+
+The list loads up to 100 headlines per category in one request instead of using [Paging 3](https://developer.android.com/topic/libraries/architecture/paging/v3-overview). A country's top headlines rarely go beyond that, so paging would add requests against the daily quota without showing more articles in practice. It would also be awkward here: headlines from several categories are merged and sorted by date, while each category pages separately.
+
+If the source had more data, the next step would be a `PagingSource` from Room with a `RemoteMediator` that fetches further pages into the database, keeping Room as the single source of truth.
 
 ### Persistence
 
@@ -123,5 +129,5 @@ The free plan allows 100 requests per day. NewsAPI accepts only one category per
 ### Known limitations
 
 - English only.
-- A list shows at most 50 headlines per category; there is no paging yet.
+- A list shows at most 100 headlines per category.
 - NewsAPI truncates article content, so the detail screen shows a preview with a link to the full article.

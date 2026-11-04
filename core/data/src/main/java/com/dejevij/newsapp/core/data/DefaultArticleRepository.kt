@@ -105,7 +105,7 @@ class DefaultArticleRepository @Inject constructor(
     private companion object {
 
         const val ALL_CATEGORIES = "all"
-        const val PAGE_SIZE = 50
+        const val PAGE_SIZE = 100
         const val HTTP_UNAUTHORIZED = 401
         const val HTTP_TOO_MANY_REQUESTS = 429
         val MAX_AGE = 30.minutes
