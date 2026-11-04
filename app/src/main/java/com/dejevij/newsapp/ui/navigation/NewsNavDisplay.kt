@@ -1,5 +1,11 @@
 package com.dejevij.newsapp.ui.navigation
 
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -18,6 +24,9 @@ fun NewsNavDisplay(modifier: Modifier = Modifier) {
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         modifier = modifier,
+        transitionSpec = { pushTransform() },
+        popTransitionSpec = { popTransform() },
+        predictivePopTransitionSpec = { popTransform() },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
@@ -37,3 +46,12 @@ fun NewsNavDisplay(modifier: Modifier = Modifier) {
         },
     )
 }
+
+private fun pushTransform(): ContentTransform = slideInHorizontally { it } togetherWith
+    slideOutHorizontally { -it / PARALLAX_DIVISOR } + fadeOut()
+
+private fun popTransform(): ContentTransform =
+    slideInHorizontally { -it / PARALLAX_DIVISOR } + fadeIn() togetherWith
+        slideOutHorizontally { it }
+
+private const val PARALLAX_DIVISOR = 4
