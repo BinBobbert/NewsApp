@@ -34,6 +34,7 @@ class CodeQualityConventionPlugin : Plugin<Project> {
                         packages("dagger.hilt.internal.aggregatedroot.codegen", "hilt_aggregated_deps")
                         classes(
                             "*.BuildConfig",
+                            "com.dejevij.newsapp.*.di.*",
                             "*.preview.*",
                             "*PreviewParameterProvider*",
                             "*PreviewState",

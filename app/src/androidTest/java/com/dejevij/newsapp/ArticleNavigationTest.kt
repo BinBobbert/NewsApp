@@ -14,6 +14,8 @@ import androidx.test.espresso.intent.Intents.intended
 import androidx.test.espresso.intent.Intents.intending
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasData
+import com.dejevij.newsapp.feature.articledetail.R as ArticleDetailR
+import com.dejevij.newsapp.feature.articlelist.R as ArticleListR
 import com.dejevij.newsapp.testing.testArticle
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -51,14 +53,18 @@ class ArticleNavigationTest {
         composeTestRule.onNodeWithText(testArticle.title).performClick()
 
         waitForText(testArticle.description!!)
-        composeTestRule.onNodeWithText(string(R.string.article_detail_read_full_article))
+        composeTestRule.onNodeWithText(
+            string(ArticleDetailR.string.article_detail_read_full_article),
+        )
             .performScrollTo()
             .performClick()
         intended(allOf(hasAction(Intent.ACTION_VIEW), hasData(testArticle.url)))
 
         pressBack()
-        waitForText(string(R.string.article_list_title))
-        composeTestRule.onNodeWithText(string(R.string.article_detail_read_full_article))
+        waitForText(string(ArticleListR.string.article_list_title))
+        composeTestRule.onNodeWithText(
+            string(ArticleDetailR.string.article_detail_read_full_article),
+        )
             .assertDoesNotExist()
     }
 
