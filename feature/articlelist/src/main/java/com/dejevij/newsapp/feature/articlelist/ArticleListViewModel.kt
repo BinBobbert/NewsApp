@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.dejevij.newsapp.core.common.di.DefaultDispatcher
 import com.dejevij.newsapp.core.data.ArticleRepository
 import com.dejevij.newsapp.core.data.CountryRepository
+import com.dejevij.newsapp.core.data.DataError
 import com.dejevij.newsapp.core.data.RefreshResult
 import com.dejevij.newsapp.core.model.Category
 import com.dejevij.newsapp.core.model.Country
@@ -14,9 +15,9 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
@@ -42,7 +42,7 @@ class ArticleListViewModel @Inject constructor(
 
     private val countries = countryMapper.map(Country.all)
     private val refreshRequests = MutableSharedFlow<ArticleListLoadState>(extraBufferCapacity = 1)
-    private val eventChannel = Channel<ArticleListEvent>(Channel.BUFFERED)
+    private val refreshError = MutableStateFlow<DataError?>(null)
 
     private val selectedCategories: Flow<Set<Category>> = savedStateHandle
         .getStateFlow(CATEGORIES_KEY, emptyList<String>())
@@ -63,14 +63,13 @@ class ArticleListViewModel @Inject constructor(
                     }
             }
 
-    val events: Flow<ArticleListEvent> = eventChannel.receiveAsFlow()
-
     val uiState: StateFlow<ArticleListUiState> = combine(
         articleRepository.topHeadlines,
         countryRepository.country,
         selectedCategories,
         loadState,
-    ) { articles, country, categories, load ->
+        refreshError,
+    ) { articles, country, categories, load, error ->
         ArticleListUiState(
             content = when (load) {
                 ArticleListLoadState.Loading -> ArticleListContent.Loading
@@ -88,6 +87,7 @@ class ArticleListViewModel @Inject constructor(
             countries = countries,
             selectedCategories = categories,
             isRefreshing = load == ArticleListLoadState.Refreshing,
+            refreshError = error,
         )
     }.flowOn(defaultDispatcher).stateIn(
         scope = viewModelScope,
@@ -101,10 +101,6 @@ class ArticleListViewModel @Inject constructor(
         ),
     )
 
-    fun onArticleClick(url: String) {
-        viewModelScope.launch { eventChannel.send(ArticleListEvent.NavigateToArticle(url)) }
-    }
-
     fun onRefresh() {
         refreshRequests.tryEmit(ArticleListLoadState.Refreshing)
     }
@@ -114,6 +110,10 @@ class ArticleListViewModel @Inject constructor(
         refreshRequests.tryEmit(
             if (isShowingError) ArticleListLoadState.Loading else ArticleListLoadState.Refreshing,
         )
+    }
+
+    fun onRefreshErrorShown() {
+        refreshError.value = null
     }
 
     fun onCategoriesApply(categories: Set<Category>) {
@@ -138,7 +138,7 @@ class ArticleListViewModel @Inject constructor(
         RefreshResult.Success -> ArticleListLoadState.Idle
 
         is RefreshResult.Failure -> if (mode == ArticleListLoadState.Refreshing) {
-            eventChannel.send(ArticleListEvent.ShowRefreshError(result.error))
+            refreshError.value = result.error
             ArticleListLoadState.Idle
         } else {
             ArticleListLoadState.Failed(result.error)

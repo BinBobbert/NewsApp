@@ -1,7 +1,6 @@
 package com.dejevij.newsapp.feature.articledetail
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
 import com.dejevij.newsapp.core.model.Article
 import com.dejevij.newsapp.core.model.Country
 import com.dejevij.newsapp.core.testing.FakeArticleRepository
@@ -43,28 +42,6 @@ class ArticleDetailViewModelTest {
         collectUiState(viewModel)
 
         assertEquals(ArticleDetailUiState.NotAvailable, viewModel.uiState.value)
-    }
-
-    @Test
-    fun `read full article sends an open event with the url`() = runTest {
-        val viewModel = viewModel("https://example.com/a")
-
-        viewModel.events.test {
-            viewModel.onReadFullArticleClick()
-
-            assertEquals(ArticleDetailEvent.OpenArticle("https://example.com/a"), awaitItem())
-        }
-    }
-
-    @Test
-    fun `back sends a navigate back event`() = runTest {
-        val viewModel = viewModel("https://example.com/a")
-
-        viewModel.events.test {
-            viewModel.onBackClick()
-
-            assertEquals(ArticleDetailEvent.NavigateBack, awaitItem())
-        }
     }
 
     private suspend fun cacheArticles(vararg articles: Article) {

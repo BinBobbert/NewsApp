@@ -7,25 +7,17 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = ArticleDetailViewModel.Factory::class)
 class ArticleDetailViewModel @AssistedInject constructor(
-    @Assisted private val url: String,
+    @Assisted url: String,
     articleRepository: ArticleRepository,
     mapper: ArticleDetailViewDataMapper,
 ) : ViewModel() {
-
-    private val eventChannel = Channel<ArticleDetailEvent>(Channel.BUFFERED)
-
-    val events: Flow<ArticleDetailEvent> = eventChannel.receiveAsFlow()
 
     val uiState: StateFlow<ArticleDetailUiState> = articleRepository.observeArticle(url)
         .map { article ->
@@ -40,14 +32,6 @@ class ArticleDetailViewModel @AssistedInject constructor(
             started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
             initialValue = ArticleDetailUiState.Loading,
         )
-
-    fun onReadFullArticleClick() {
-        viewModelScope.launch { eventChannel.send(ArticleDetailEvent.OpenArticle(url)) }
-    }
-
-    fun onBackClick() {
-        viewModelScope.launch { eventChannel.send(ArticleDetailEvent.NavigateBack) }
-    }
 
     @AssistedFactory
     interface Factory {
