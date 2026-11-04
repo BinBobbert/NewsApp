@@ -13,3 +13,9 @@ val testArticle = Article(
     imageUrl = null,
     publishedAt = Clock.System.now(),
 )
+
+val otherTestArticle = testArticle.copy(
+    url = "https://example.com/other-test-article",
+    title = "Other test headline",
+    description = "Other test description",
+)

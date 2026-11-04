@@ -23,6 +23,10 @@ android {
             }
         }
     }
+    sourceSets {
+        named("test") { kotlin.directories.add("src/sharedTest/java") }
+        named("androidTest") { kotlin.directories.add("src/sharedTest/java") }
+    }
     testOptions {
         managedDevices {
             localDevices {
@@ -67,12 +71,18 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.compose.material3.adaptive.navigation3)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.compose.ui)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+
+    testImplementation(projects.core.data)
+    testImplementation(projects.core.testing)
+    testImplementation(libs.hilt.android.testing)
+    kspTest(libs.hilt.compiler)
 
     androidTestImplementation(projects.core.data)
     androidTestImplementation(projects.core.testing)

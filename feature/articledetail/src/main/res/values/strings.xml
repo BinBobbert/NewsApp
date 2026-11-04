@@ -4,6 +4,7 @@
     <string name="article_detail_read_full_article">Read full article</string>
     <string name="article_detail_not_available">This article is no longer available.</string>
     <string name="article_detail_back_to_headlines">Back to headlines</string>
+    <string name="article_detail_placeholder">Select an article to read it here.</string>
 
     <string name="error_no_browser">No app available to open this article.</string>
 </resources>
