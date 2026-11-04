@@ -22,6 +22,17 @@ internal fun CommonExtension.configureAndroidDefaults() {
         // Robolectric's API 36+ runtime reads JDK internals that Java modules hide by default.
         test.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
     }
+    lint.apply {
+        warningsAsErrors = true
+        // Version checks depend on what was released today, so they would make builds flaky.
+        // ObsoleteLintCustomCheck reports lint checks shipped by libraries, which we can't fix.
+        disable += setOf(
+            "AndroidGradlePluginVersion",
+            "GradleDependency",
+            "NewerVersionAvailable",
+            "ObsoleteLintCustomCheck",
+        )
+    }
     compileOptions.apply {
         sourceCompatibility = AndroidConfig.javaVersion
         targetCompatibility = AndroidConfig.javaVersion

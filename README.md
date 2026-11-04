@@ -85,15 +85,19 @@ Kotlin, Jetpack Compose with Material 3, Navigation 3, Hilt, Kotlin Coroutines a
 ## Testing and code quality
 
 ```bash
-./gradlew testDebugUnitTest            # unit and Robolectric UI tests
-./gradlew :app:connectedDebugAndroidTest  # instrumented navigation test, needs a device
-./gradlew ktlintCheck detekt           # formatting and static analysis
-./gradlew koverHtmlReportDebug         # merged coverage report in app/build/reports/kover
+./gradlew testDebugUnitTest               # unit and Robolectric UI tests
+./gradlew pixel6Api34DebugAndroidTest     # instrumented tests on a Gradle-managed emulator
+./gradlew ktlintCheck detekt lint         # formatting, static analysis and Android Lint
+./gradlew koverHtmlReportDebug            # merged coverage report in app/build/reports/kover
 ```
 
 - ViewModels and repositories are tested with fakes from `:core:testing`. Repository and DAO tests run against an in-memory Room database.
 - Compose screens are tested with Robolectric, so they run as fast JVM tests.
-- CI runs ktlint, detekt and the unit tests on every pull request, and requires 80% line coverage overall and on changed lines.
+- CI runs on every pull request:
+  - ktlint, detekt and Android Lint, with lint warnings treated as errors
+  - the unit tests, requiring 80% line coverage overall and on changed lines
+  - a release build, so R8 shrinking problems show up before a release
+  - the instrumented tests on a [Gradle Managed Device](https://developer.android.com/studio/test/gradle-managed-devices)
 
 ## Design decisions and trade-offs
 
