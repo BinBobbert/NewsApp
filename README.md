@@ -52,10 +52,10 @@ flowchart LR
     Repo -- "write" --> DB
 ```
 
-- **Room is the single source of truth.** Screens observe the database. A refresh fetches from the network and writes the result to the database, so the UI never reads network responses directly.
+- **Room is the single source of truth.** Screens observe the database. A refresh fetches from the network and writes the result to the database.
 - **Freshness policy:** a refresh only calls the network for country and category combinations fetched 30 minutes ago or longer. Pull to refresh always fetches.
-- **UI state:** each screen exposes one `StateFlow` of immutable UI state. Errors that happen during a refresh are part of that state and are cleared once the snackbar has shown them, so they survive configuration changes.
-- **Route and Screen:** each `*Route` composable connects the ViewModel, and each `*Screen` composable is stateless, which keeps previews and UI tests independent of the ViewModel.
+- **UI state:** each screen exposes one `StateFlow` of immutable UI state. Errors that happen during a refresh are part of that state and are cleared once the snackbar has shown them.
+- **Route and Screen:** each `*Route` composable connects the ViewModel, and each `*Screen` composable is stateless.
 - **Navigation:** [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) with a back stack of serializable keys. The detail ViewModel receives the article URL through Hilt assisted injection.
 
 ### Modules
@@ -92,20 +92,18 @@ Kotlin, Jetpack Compose with Material 3, Navigation 3, Hilt, Kotlin Coroutines a
 ```
 
 - ViewModels and repositories are tested with fakes from `:core:testing`. Repository and DAO tests run against an in-memory Room database.
-- Compose screens are tested with Robolectric, so they run as fast JVM tests.
+- Compose screens are tested with Robolectric.
 - CI runs on every pull request:
   - ktlint, detekt and Android Lint, with lint warnings treated as errors
   - the unit tests, requiring 80% line coverage overall and on changed lines
-  - a release build, so R8 shrinking problems show up before a release
+  - a release build with R8
   - the instrumented tests on a [Gradle Managed Device](https://developer.android.com/studio/test/gradle-managed-devices)
 
 ## Design decisions and trade-offs
 
-### The API key ships in the app
+### API key
 
-The key is compiled into `BuildConfig`, so anyone with the APK can extract it. Code shrinking doesn't prevent that. For a real product the key would stay on a backend that proxies NewsAPI, with [Play Integrity](https://developer.android.com/google/play/integrity) or [Firebase App Check](https://firebase.google.com/docs/app-check) limiting who can call it. That is out of scope here.
-
-NewsAPI's free plan is also only for development, not for apps in production.
+NewsAPI's free plan is only for development, not for apps in production.
 
 ### Request quota
 
@@ -117,14 +115,12 @@ The free plan allows 100 requests per day. NewsAPI accepts only one category per
 
 ### No paging
 
-The list loads up to 100 headlines per category in one request instead of using [Paging 3](https://developer.android.com/topic/libraries/architecture/paging/v3-overview). A country's top headlines rarely go beyond that, so paging would add requests against the daily quota without showing more articles in practice. It would also be awkward here: headlines from several categories are merged and sorted by date, while each category pages separately.
-
-If the source had more data, the next step would be a `PagingSource` from Room with a `RemoteMediator` that fetches further pages into the database, keeping Room as the single source of truth.
+The list loads up to 100 headlines per category in one request. A country's top headlines rarely exceed that, so the app doesn't use Paging.
 
 ### Persistence
 
-- The selected **country** is stored in DataStore, because people usually read news for one country.
-- The selected **categories** are kept in `SavedStateHandle`. They survive configuration changes and process death, but not an app restart, since they're meant to be changed on the fly.
+- The selected **country** is stored in DataStore.
+- The selected **categories** are kept in `SavedStateHandle`. They survive configuration changes and process death, but not an app restart.
 
 ### Known limitations
 
