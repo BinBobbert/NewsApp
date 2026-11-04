@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
 
-// The database is the single source of truth: screens observe it, and a refresh only writes to it.
 class DefaultArticleRepository @Inject constructor(
     private val newsApi: NewsApi,
     private val headlineDao: HeadlineDao,

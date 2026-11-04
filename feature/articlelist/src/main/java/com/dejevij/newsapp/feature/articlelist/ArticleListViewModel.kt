@@ -50,11 +50,12 @@ class ArticleListViewModel @Inject constructor(
         .getStateFlow(CATEGORIES_KEY, emptyList<String>())
         .map { names -> names.map(Category::valueOf).toSet() }
 
-    // Everything below depends on the filters, so a filter change switches the whole pipeline
-    // and stored articles of the previous filters are never shown with the new ones.
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<ArticleListUiState> =
-        combine(countryRepository.country, selectedCategories, ::Pair)
+        combine(
+            countryRepository.country,
+            selectedCategories,
+        ) { country, categories -> country to categories }
             .distinctUntilChanged()
             .flatMapLatest { (country, categories) ->
                 combine(
