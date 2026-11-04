@@ -18,6 +18,7 @@ import com.dejevij.newsapp.testing.FakeCountryRepository
 import com.dejevij.newsapp.testing.FixedClock
 import com.dejevij.newsapp.ui.RelativeTimeFormatter
 import kotlin.time.Instant
+import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -71,6 +72,7 @@ class ArticleListRouteTest {
             ),
             countryMapper = CountryViewDataMapper(),
             savedStateHandle = SavedStateHandle(),
+            defaultDispatcher = Dispatchers.Main,
         )
         composeTestRule.setContent {
             NewsAppTheme {

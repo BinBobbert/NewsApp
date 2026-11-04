@@ -7,7 +7,7 @@ internal object AndroidConfig {
     const val COMPILE_SDK = 37
     const val MIN_SDK = 24
     const val TARGET_SDK = 37
-    val javaVersion = JavaVersion.VERSION_11
+    val javaVersion = JavaVersion.VERSION_17
 }
 
 internal fun CommonExtension.configureAndroidDefaults() {

@@ -15,9 +15,9 @@ import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 import okhttp3.Cache
+import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import retrofit2.create
@@ -34,6 +34,10 @@ annotation class BaseUrl
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class NewsApiClient
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class DebugInterceptors
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -68,19 +72,12 @@ object NetworkModule {
         apiKeyInterceptor: ApiKeyInterceptor,
         responseCacheInterceptor: ResponseCacheInterceptor,
         cache: Cache,
+        @DebugInterceptors debugInterceptors: Set<@JvmSuppressWildcards Interceptor>,
     ): OkHttpClient = okHttpClient.newBuilder()
         .cache(cache)
         .addInterceptor(apiKeyInterceptor)
         .addNetworkInterceptor(responseCacheInterceptor)
-        .apply {
-            if (BuildConfig.DEBUG) {
-                val logging = HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BODY
-                    redactHeader(ApiKeyInterceptor.HEADER)
-                }
-                addInterceptor(logging)
-            }
-        }
+        .apply { debugInterceptors.forEach(::addInterceptor) }
         .build()
 
     @Provides

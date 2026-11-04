@@ -6,11 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.dejevij.newsapp.data.ArticleRepository
 import com.dejevij.newsapp.data.CountryRepository
 import com.dejevij.newsapp.data.RefreshResult
+import com.dejevij.newsapp.di.DefaultDispatcher
 import com.dejevij.newsapp.model.Category
 import com.dejevij.newsapp.model.Country
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -34,6 +37,7 @@ class ArticleListViewModel @Inject constructor(
     private val articleMapper: ArticleViewDataMapper,
     countryMapper: CountryViewDataMapper,
     private val savedStateHandle: SavedStateHandle,
+    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val countries = countryMapper.map(Country.all)
@@ -85,7 +89,7 @@ class ArticleListViewModel @Inject constructor(
             selectedCategories = categories,
             isRefreshing = load == ArticleListLoadState.Refreshing,
         )
-    }.stateIn(
+    }.flowOn(defaultDispatcher).stateIn(
         scope = viewModelScope,
         // Lazily rather than WhileSubscribed: restarting this pipeline starts a new full load,
         // which would reset the list and its scroll position whenever the screen returns.

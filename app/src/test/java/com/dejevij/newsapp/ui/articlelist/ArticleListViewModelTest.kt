@@ -164,6 +164,7 @@ class ArticleListViewModelTest {
             ),
             countryMapper = CountryViewDataMapper(),
             savedStateHandle = savedStateHandle,
+            defaultDispatcher = mainDispatcherRule.dispatcher,
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)

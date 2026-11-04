@@ -14,7 +14,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,6 +28,7 @@ import com.dejevij.newsapp.R
 import com.dejevij.newsapp.core.designsystem.preview.PreviewContainer
 import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
 import com.dejevij.newsapp.model.Country
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,11 +39,21 @@ fun CountryPickerSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismissRequest, modifier = modifier) {
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        modifier = modifier,
+        sheetState = sheetState,
+    ) {
         CountryPickerContent(
             countries = countries,
             selectedCountry = selectedCountry,
-            onCountrySelect = onCountrySelect,
+            onCountrySelect = { country ->
+                onCountrySelect(country)
+                scope.launch { sheetState.hide() }.invokeOnCompletion { onDismissRequest() }
+            },
         )
     }
 }

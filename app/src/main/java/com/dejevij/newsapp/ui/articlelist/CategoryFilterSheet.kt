@@ -2,7 +2,6 @@ package com.dejevij.newsapp.ui.articlelist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,9 +13,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -31,6 +32,7 @@ import com.dejevij.newsapp.core.designsystem.preview.PreviewContainer
 import com.dejevij.newsapp.core.designsystem.theme.NewsAppTheme
 import com.dejevij.newsapp.model.Category
 import com.dejevij.newsapp.ui.labelRes
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,15 +43,24 @@ fun CategoryFilterSheet(
     modifier: Modifier = Modifier,
 ) {
     var draft by rememberSaveable { mutableStateOf(selectedCategories) }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
 
-    ModalBottomSheet(onDismissRequest = onDismissRequest, modifier = modifier) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        modifier = modifier,
+        sheetState = sheetState,
+    ) {
         CategoryFilterContent(
             selectedCategories = draft,
             onCategoryToggle = { category ->
                 draft = if (category in draft) draft - category else draft + category
             },
             onClear = { draft = emptySet() },
-            onApply = { onApply(draft) },
+            onApply = {
+                onApply(draft)
+                scope.launch { sheetState.hide() }.invokeOnCompletion { onDismissRequest() }
+            },
         )
     }
 }
