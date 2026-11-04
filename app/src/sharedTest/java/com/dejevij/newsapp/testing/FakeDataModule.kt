@@ -18,7 +18,7 @@ object FakeDataModule {
     @Provides
     @Singleton
     fun provideArticleRepository(): ArticleRepository =
-        FakeArticleRepository().apply { nextArticles = listOf(testArticle) }
+        FakeArticleRepository().apply { nextArticles = listOf(testArticle, otherTestArticle) }
 
     @Provides
     @Singleton

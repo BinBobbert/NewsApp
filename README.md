@@ -7,6 +7,7 @@ An Android app that shows top headlines from [NewsAPI](https://newsapi.org), bui
 - Top headlines for a selectable country, remembered across app restarts
 - Filtering by one or more categories
 - Article detail screen, with the full article opening in a Custom Tab
+- List and detail side by side on tablets and foldables
 - Works offline: stored headlines show immediately on launch, also without a connection
 - Pull to refresh, with a retry action when a refresh fails
 - Light and dark theme, edge-to-edge, splash screen
@@ -56,7 +57,7 @@ flowchart LR
 - **Freshness policy:** a refresh only calls the network for country and category combinations fetched 30 minutes ago or longer. Pull to refresh always fetches.
 - **UI state:** each screen exposes one `StateFlow` of immutable UI state. Errors that happen during a refresh are part of that state and are cleared once the snackbar has shown them.
 - **Route and Screen:** each `*Route` composable connects the ViewModel, and each `*Screen` composable is stateless.
-- **Navigation:** [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) with a back stack of serializable keys. The detail ViewModel receives the article URL through Hilt assisted injection.
+- **Navigation:** [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) with a back stack of serializable keys. On wide screens, `ListDetailSceneStrategy` shows the list and detail as two panes. The detail ViewModel receives the article URL through Hilt assisted injection.
 
 ### Modules
 
