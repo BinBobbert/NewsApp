@@ -1,6 +1,6 @@
 package com.dejevij.newsapp.testing
 
-import com.dejevij.newsapp.model.Article
+import com.dejevij.newsapp.core.model.Article
 import kotlin.time.Clock
 
 val testArticle = Article(

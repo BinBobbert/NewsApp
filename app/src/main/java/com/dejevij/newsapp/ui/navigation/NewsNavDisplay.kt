@@ -7,8 +7,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.dejevij.newsapp.ui.articledetail.ArticleDetailRoute
-import com.dejevij.newsapp.ui.articlelist.ArticleListRoute
+import com.dejevij.newsapp.feature.articledetail.ArticleDetailRoute
+import com.dejevij.newsapp.feature.articlelist.ArticleListRoute
 
 @Composable
 fun NewsNavDisplay(modifier: Modifier = Modifier) {

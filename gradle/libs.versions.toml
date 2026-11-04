@@ -86,5 +86,6 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 newsapp-android-application = { id = "newsapp.android.application" }
 newsapp-android-library = { id = "newsapp.android.library" }
 newsapp-android-compose = { id = "newsapp.android.compose" }
+newsapp-android-feature = { id = "newsapp.android.feature" }
 newsapp-hilt = { id = "newsapp.hilt" }
 newsapp-code-quality = { id = "newsapp.code.quality" }

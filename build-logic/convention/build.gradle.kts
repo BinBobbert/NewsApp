@@ -25,6 +25,10 @@ gradlePlugin {
             id = libs.plugins.newsapp.android.compose.get().pluginId
             implementationClass = "AndroidComposeConventionPlugin"
         }
+        register("androidFeature") {
+            id = libs.plugins.newsapp.android.feature.get().pluginId
+            implementationClass = "AndroidFeatureConventionPlugin"
+        }
         register("hilt") {
             id = libs.plugins.newsapp.hilt.get().pluginId
             implementationClass = "HiltConventionPlugin"

@@ -1,8 +1,10 @@
 package com.dejevij.newsapp.testing
 
-import com.dejevij.newsapp.data.ArticleRepository
-import com.dejevij.newsapp.data.CountryRepository
-import com.dejevij.newsapp.di.DataModule
+import com.dejevij.newsapp.core.data.ArticleRepository
+import com.dejevij.newsapp.core.data.CountryRepository
+import com.dejevij.newsapp.core.data.di.DataModule
+import com.dejevij.newsapp.core.testing.FakeArticleRepository
+import com.dejevij.newsapp.core.testing.FakeCountryRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.components.SingletonComponent

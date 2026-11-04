@@ -1,22 +1,9 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.newsapp.android.application)
     alias(libs.plugins.newsapp.android.compose)
     alias(libs.plugins.newsapp.hilt)
     alias(libs.plugins.kotlin.serialization)
 }
-
-val newsApiKey: String = providers.environmentVariable("NEWS_API_KEY")
-    .orElse(
-        providers.fileContents(rootProject.layout.projectDirectory.file("local.properties"))
-            .asText
-            .map { text ->
-                val properties = Properties().apply { load(text.reader()) }
-                properties.getProperty("NEWS_API_KEY").orEmpty()
-            },
-    )
-    .getOrElse("")
 
 android {
     namespace = "com.dejevij.newsapp"
@@ -26,9 +13,6 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "com.dejevij.newsapp.HiltTestRunner"
-
-        buildConfigField("String", "NEWS_API_KEY", "\"$newsApiKey\"")
-        buildConfigField("String", "NEWS_API_BASE_URL", "\"https://newsapi.org/\"")
     }
 
     buildTypes {
@@ -39,20 +23,12 @@ android {
             }
         }
     }
-    buildFeatures {
-        buildConfig = true
-    }
-    sourceSets {
-        named("test") { kotlin.directories.add("src/sharedTest/java") }
-        named("androidTest") { kotlin.directories.add("src/sharedTest/java") }
-    }
 }
 
 kover {
     reports {
         filters {
             excludes {
-                packages("com.dejevij.newsapp.di")
                 classes("com.dejevij.newsapp.MainActivity*", "com.dejevij.newsapp.NewsApplication*")
             }
         }
@@ -61,35 +37,32 @@ kover {
 
 dependencies {
     implementation(projects.core.designsystem)
+    implementation(projects.core.network)
+    implementation(projects.feature.articledetail)
+    implementation(projects.feature.articlelist)
+
+    kover(projects.core.common)
+    kover(projects.core.data)
     kover(projects.core.designsystem)
+    kover(projects.core.model)
+    kover(projects.core.network)
+    kover(projects.core.ui)
+    kover(projects.feature.articledetail)
+    kover(projects.feature.articlelist)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-    implementation(libs.androidx.browser)
-
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.kotlinx.serialization)
-    implementation(libs.okhttp)
-    debugImplementation(libs.okhttp.logging.interceptor)
 
     implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.okhttp.mockwebserver)
-    testImplementation(libs.turbine)
-    testImplementation(libs.coil.test)
-
+    androidTestImplementation(projects.core.data)
+    androidTestImplementation(projects.core.testing)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
