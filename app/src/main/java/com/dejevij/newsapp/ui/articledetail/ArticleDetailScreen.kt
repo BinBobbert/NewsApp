@@ -1,6 +1,7 @@
 package com.dejevij.newsapp.ui.articledetail
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -80,8 +81,8 @@ fun ArticleDetailScreen(
 
             is ArticleDetailUiState.Content -> ArticleDetailContent(
                 article = uiState.article,
+                contentPadding = innerPadding,
                 onReadFullArticleClick = onReadFullArticleClick,
-                modifier = contentModifier,
             )
         }
     }
@@ -90,10 +91,16 @@ fun ArticleDetailScreen(
 @Composable
 private fun ArticleDetailContent(
     article: ArticleDetailViewData,
+    contentPadding: PaddingValues,
     onReadFullArticleClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(contentPadding),
+    ) {
         if (article.imageUrl != null) {
             ArticleImage(imageUrl = article.imageUrl)
         }

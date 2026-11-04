@@ -32,6 +32,7 @@ class NewsApiTest {
             apiKeyInterceptor = ApiKeyInterceptor(API_KEY),
             responseCacheInterceptor = ResponseCacheInterceptor(),
             cache = Cache(temporaryFolder.newFolder("http-cache"), CACHE_MAX_BYTES),
+            debugInterceptors = emptySet(),
         )
         val retrofit = NetworkModule.provideRetrofit(
             okHttpClient = okHttpClient,

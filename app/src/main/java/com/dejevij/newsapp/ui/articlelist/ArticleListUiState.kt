@@ -1,6 +1,5 @@
 package com.dejevij.newsapp.ui.articlelist
 
-import com.dejevij.newsapp.data.DataError
 import com.dejevij.newsapp.model.Category
 
 data class ArticleListUiState(

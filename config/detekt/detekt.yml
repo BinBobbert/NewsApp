@@ -12,5 +12,7 @@ style:
     ignoreAnnotated: ['Provides']
   MagicNumber:
     excludes: ['**/test/**', '**/androidTest/**', '**/designsystem/theme/Color.kt']
+  UnusedImports:
+    active: true
   UnusedPrivateMember:
     ignoreAnnotated: ['Preview', 'PreviewLightDark']
